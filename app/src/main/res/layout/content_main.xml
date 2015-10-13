@@ -1,14 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:showIn="@layout/activity_main" tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    tools:showIn="@layout/activity_main">
 
-    <TextView android:text="Hello World!" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+
+
+    <TextView
+        android:id="@+id/textView_timeDisplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp"
+        android:text="@string/textView_default_time"
+        android:textSize="50sp"/>
+
+
+    <RelativeLayout
+        android:id="@+id/linearLayout_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textView_timeDisplay"
+        android:layout_marginTop="200dp"
+        android:layout_centerInParent="true"
+        >
+
+        <ToggleButton
+            android:id="@+id/button_startStop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="Stop"
+            android:textOff="Start"
+            android:layout_marginRight="20dp"
+            android:textAllCaps="false"/>
+
+        <Button
+            android:id="@+id/button_lapReset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/button_startStop"
+            android:text="@string/Lap"
+            android:textAllCaps="false"/>
+
+    </RelativeLayout>
+
+
 </RelativeLayout>
