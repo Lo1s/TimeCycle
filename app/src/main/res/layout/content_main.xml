@@ -22,9 +22,9 @@
             android:id="@+id/textView_timeDisplay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="60dp"
+            android:layout_marginTop="30dp"
             android:text="@string/textView_default_time"
-            android:textSize="50sp"/>
+            android:textSize="70sp"/>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerView_lapTimes"
@@ -41,25 +41,31 @@
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:layout_gravity="center"
             android:layout_below="@id/textView_timeDisplay"
             >
 
             <ToggleButton
                 android:id="@+id/button_startStop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:textOn="Stop"
                 android:textOff="Start"
                 android:layout_marginRight="20dp"
-                android:textAllCaps="false"/>
+                android:textAllCaps="false"
+                android:textColor="@android:color/holo_green_light"
+                android:background="@drawable/round_button"
+                android:gravity="center"/>
 
             <Button
                 android:id="@+id/button_lapReset"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:layout_toRightOf="@id/button_startStop"
                 android:text="@string/Lap"
-                android:textAllCaps="false"/>
+                android:textAllCaps="false"
+                android:background="@drawable/round_button"
+                android:gravity="center"/>
 
         </RelativeLayout>
 

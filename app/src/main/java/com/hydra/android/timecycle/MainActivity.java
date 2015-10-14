@@ -1,5 +1,6 @@
 package com.hydra.android.timecycle;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -15,7 +16,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.util.ArrayList;
@@ -133,9 +133,11 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     start();
+                    startStopButton.setTextColor(Color.parseColor("#cc0000"));
                     lapReset.setText(R.string.Lap);
                 } else {
                     stop();
+                    startStopButton.setTextColor(Color.parseColor("#99cc00"));
                     lapReset.setText(R.string.Reset);
                 }
             }
@@ -145,13 +147,11 @@ public class MainActivity extends AppCompatActivity {
 
     // Starts the StopWatch
     private void start() {
-        Toast.makeText(MainActivity.this, "Start !", Toast.LENGTH_SHORT).show();
         handler.sendEmptyMessage(MSG_START_TIMER);
     }
 
     // Stops the StopWatch
     private void stop() {
-        Toast.makeText(MainActivity.this, "Stop !", Toast.LENGTH_SHORT).show();
         handler.sendEmptyMessage(MSG_STOP_TIMER);
     }
 
@@ -174,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Laps the time
     private void lap() {
-        Toast.makeText(MainActivity.this, "Lap !", Toast.LENGTH_SHORT).show();
         mLapTimes.add(formatTime(
                 stopWatch.getElapsedTimeHours(),
                 stopWatch.getElapsedTimeMinutes(),
@@ -185,7 +184,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Resets the time
     private void reset() {
-        Toast.makeText(MainActivity.this, "Reset !", Toast.LENGTH_SHORT).show();
         stopWatch.resetTime();
         textView_timeDisplay.setText(R.string.textView_default_time);
         mLapTimes.clear();
@@ -199,15 +197,8 @@ public class MainActivity extends AppCompatActivity {
     // Format the time
     private String formatTime(long hour, long minute, long second, long milli) {
         StringBuilder builder = new StringBuilder();
-        String hourString;
         String minuteString;
         String secondString;
-
-        if (hour < 10) {
-            hourString = "0" + hour;
-        } else {
-            hourString = "" + hour;
-        }
 
         if (minute < 10) {
             minuteString = "0" + minute;
@@ -222,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        builder.append(hourString + ":");
+        builder.append(hour + ":");
         builder.append(minuteString + ":");
         builder.append(secondString + ",");
         builder.append(milli + "");
