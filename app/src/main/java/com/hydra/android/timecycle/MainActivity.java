@@ -6,16 +6,19 @@ import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,7 +26,9 @@ public class MainActivity extends AppCompatActivity {
 
     // UI Components
     private TextView textView_timeDisplay;
-    private Chronometer chronometer;
+    private RecyclerView recyclerView_lapTimes;
+    private RecyclerView.LayoutManager rVlayoutManager;
+    private RecyclerView.Adapter rVadapter;
     private ToggleButton startStopButton;
     private Button lapReset;
 
@@ -32,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private final int MSG_START_TIMER = 1;
     private final int MSG_UPDATE_TIMER = 2;
     private StopWatch stopWatch = new StopWatch();
+
+    private ArrayList<String> mLapTimes;
 
 
     // Handler refreshes UI with the stopwatch time by the given UI_REFRESH_RATE
@@ -81,10 +88,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Initialize UI components
+        // Initialize UI
         startStop();
         textView_timeDisplay = (TextView) findViewById(R.id.textView_timeDisplay);
         lapReset();
+        // Set up RecyclerView for lap times
+        recyclerView_lapTimes = (RecyclerView) findViewById(R.id.recyclerView_lapTimes);
+        recyclerView_lapTimes.setHasFixedSize(true);
+        rVlayoutManager = new LinearLayoutManager(this);
+        recyclerView_lapTimes.setLayoutManager(rVlayoutManager);
+        mLapTimes = new ArrayList<>();
+        rVadapter = new LapTimesAdapter(mLapTimes);
+        recyclerView_lapTimes.setAdapter(rVadapter);
     }
 
     @Override
@@ -160,6 +175,12 @@ public class MainActivity extends AppCompatActivity {
     // Laps the time
     private void lap() {
         Toast.makeText(MainActivity.this, "Lap !", Toast.LENGTH_SHORT).show();
+        mLapTimes.add(formatTime(
+                stopWatch.getElapsedTimeHours(),
+                stopWatch.getElapsedTimeMinutes(),
+                stopWatch.getElapsedTimeSecs(),
+                stopWatch.getElapsedTimeMilli()));
+        rVadapter.notifyDataSetChanged();
     }
 
     // Resets the time
@@ -167,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(MainActivity.this, "Reset !", Toast.LENGTH_SHORT).show();
         stopWatch.resetTime();
         textView_timeDisplay.setText(R.string.textView_default_time);
+        mLapTimes.clear();
     }
 
     // Display the time
@@ -207,6 +229,4 @@ public class MainActivity extends AppCompatActivity {
 
         return builder.toString();
     }
-
-
 }
