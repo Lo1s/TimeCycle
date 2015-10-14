@@ -35,27 +35,18 @@ public class StopWatch {
         this.isStopped = true;
     }
 
-    public void pause() {
-        this.isRunning = true;
-        currentTime = System.currentTimeMillis() - startTime;
-    }
-
-    public void resume() {
-        this.isRunning = true;
-        this.startTime = System.currentTimeMillis() - currentTime;
-    }
-
-    public boolean isRunning() {
-        return isRunning;
-    }
-
     public boolean isStopped() {
         return isStopped;
     }
 
     public void resetTime() {
-        startTime = 0;
-        endTime = 0;
+        this.startTime = 0;
+        this.endTime = 0;
+        isStopped = true;
+    }
+
+    public void split() {
+        this.startTime = System.currentTimeMillis();
     }
 
     // Returns time in milliseconds

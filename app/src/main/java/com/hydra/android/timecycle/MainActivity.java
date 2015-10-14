@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     // UI Components
     private TextView textView_timeDisplay;
+    private TextView textView_splitDisplay;
     private RecyclerView recyclerView_lapTimes;
     private RecyclerView.LayoutManager rVlayoutManager;
     private RecyclerView.Adapter rVadapter;
@@ -36,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private final int MSG_STOP_TIMER = 0;
     private final int MSG_START_TIMER = 1;
     private final int MSG_UPDATE_TIMER = 2;
-    private StopWatch stopWatch = new StopWatch();
-
+    private StopWatch mainStopWatch = new StopWatch();
+    private StopWatch splitStopWatch = new StopWatch();
     private ArrayList<String> mLapTimes;
 
 
@@ -48,24 +49,31 @@ public class MainActivity extends AppCompatActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case MSG_START_TIMER:
-                    stopWatch.start();
+                    mainStopWatch.start();
+                    splitStopWatch.start();
                     handler.sendEmptyMessage(MSG_UPDATE_TIMER);
                     break;
                 case MSG_STOP_TIMER:
                     handler.removeMessages(MSG_UPDATE_TIMER);
-                    stopWatch.stop();
+                    mainStopWatch.stop();
+                    splitStopWatch.stop();
                     displayTime(formatTime(
-                            stopWatch.getElapsedTimeHours(),
-                            stopWatch.getElapsedTimeMinutes(),
-                            stopWatch.getElapsedTimeSecs(),
-                            stopWatch.getElapsedTimeMilli()));
+                            mainStopWatch.getElapsedTimeHours(),
+                            mainStopWatch.getElapsedTimeMinutes(),
+                            mainStopWatch.getElapsedTimeSecs(),
+                            mainStopWatch.getElapsedTimeMilli()));
                     break;
                 case MSG_UPDATE_TIMER:
                     displayTime(formatTime(
-                            stopWatch.getElapsedTimeHours(),
-                            stopWatch.getElapsedTimeMinutes(),
-                            stopWatch.getElapsedTimeSecs(),
-                            stopWatch.getElapsedTimeMilli()));
+                            mainStopWatch.getElapsedTimeHours(),
+                            mainStopWatch.getElapsedTimeMinutes(),
+                            mainStopWatch.getElapsedTimeSecs(),
+                            mainStopWatch.getElapsedTimeMilli()));
+                    displaySplitTime(formatTime(
+                            splitStopWatch.getElapsedTimeHours(),
+                            splitStopWatch.getElapsedTimeMinutes(),
+                            splitStopWatch.getElapsedTimeSecs(),
+                            splitStopWatch.getElapsedTimeMilli()));
                     handler.sendEmptyMessageDelayed(MSG_UPDATE_TIMER, UI_REFRESH_RATE);
                     break;
             }
@@ -91,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
         // Initialize UI
         startStop();
         textView_timeDisplay = (TextView) findViewById(R.id.textView_timeDisplay);
+        textView_splitDisplay = (TextView) findViewById(R.id.textView_splitTime);
         lapReset();
         // Set up RecyclerView for lap times
         recyclerView_lapTimes = (RecyclerView) findViewById(R.id.recyclerView_lapTimes);
@@ -162,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (stopWatch.isStopped()) {
+                if (mainStopWatch.isStopped()) {
                     reset();
                 } else {
                     lap();
@@ -174,24 +183,31 @@ public class MainActivity extends AppCompatActivity {
 
     // Laps the time
     private void lap() {
+        splitStopWatch.split();
         mLapTimes.add(formatTime(
-                stopWatch.getElapsedTimeHours(),
-                stopWatch.getElapsedTimeMinutes(),
-                stopWatch.getElapsedTimeSecs(),
-                stopWatch.getElapsedTimeMilli()));
+                mainStopWatch.getElapsedTimeHours(),
+                mainStopWatch.getElapsedTimeMinutes(),
+                mainStopWatch.getElapsedTimeSecs(),
+                mainStopWatch.getElapsedTimeMilli()));
         rVadapter.notifyDataSetChanged();
     }
 
     // Resets the time
     private void reset() {
-        stopWatch.resetTime();
+        mainStopWatch.resetTime();
+        splitStopWatch.resetTime();
         textView_timeDisplay.setText(R.string.textView_default_time);
+        textView_splitDisplay.setText(R.string.textView_default_time);
         mLapTimes.clear();
     }
 
-    // Display the time
+    // Display the main time
     private void displayTime(String time) {
         textView_timeDisplay.setText(time);
+    }
+
+    private void displaySplitTime(String time) {
+        textView_splitDisplay.setText(time);
     }
 
     // Format the time
