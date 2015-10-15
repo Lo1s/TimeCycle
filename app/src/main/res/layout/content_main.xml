@@ -1,84 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/framelayout_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_centerInParent="true">
+    <RelativeLayout
+        android:id="@+id/stopwatch_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/textView_splitTime"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:text="@string/textView_default_time"
-            android:textSize="20sp"
-            android:layout_gravity="center" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_centerInParent="true">
 
-        <TextView
-            android:id="@+id/textView_timeDisplay"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/textView_default_time"
-            android:textSize="70sp"/>
+            <TextView
+                android:id="@+id/textView_splitTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="@string/textView_default_time"
+                android:textSize="20sp"
+                android:layout_gravity="center" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recyclerView_lapTimes"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:scrollbars="vertical">
+            <TextView
+                android:id="@+id/textView_timeDisplay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/textView_default_time"
+                android:textSize="70sp"/>
 
-
-        </android.support.v7.widget.RecyclerView>
-
-        <RelativeLayout
-            android:id="@+id/layout_buttons"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_gravity="center"
-            android:layout_below="@id/textView_timeDisplay"
-            >
-
-            <ToggleButton
-                android:id="@+id/button_startStop"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:textOn="Stop"
-                android:textOff="Start"
-                android:layout_marginRight="20dp"
-                android:textAllCaps="false"
-                android:textColor="@android:color/holo_green_light"
-                android:background="@drawable/round_button"
-                android:gravity="center"/>
-
-            <Button
-                android:id="@+id/button_lapReset"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_toRightOf="@id/button_startStop"
-                android:text="@string/Lap"
-                android:textAllCaps="false"
-                android:background="@drawable/round_button"
-                android:gravity="center"/>
-
-        </RelativeLayout>
-
-    </LinearLayout>
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerView_lapTimes"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scrollbars="vertical">
 
 
+            </android.support.v7.widget.RecyclerView>
 
-</RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/layout_buttons"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:layout_below="@id/textView_timeDisplay"
+                >
+
+                <ToggleButton
+                    android:id="@+id/button_startStop"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:textOn="Stop"
+                    android:textOff="Start"
+                    android:layout_marginRight="20dp"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/holo_green_light"
+                    android:background="@drawable/round_button"
+                    android:gravity="center"/>
+
+                <Button
+                    android:id="@+id/button_lapReset"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_toRightOf="@id/button_startStop"
+                    android:text="@string/Lap"
+                    android:textAllCaps="false"
+                    android:background="@drawable/round_button"
+                    android:gravity="center"/>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</FrameLayout>
+

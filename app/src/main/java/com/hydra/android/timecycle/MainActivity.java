@@ -4,17 +4,22 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -32,6 +37,10 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.Adapter rVadapter;
     private ToggleButton startStopButton;
     private Button lapReset;
+    private CustomBackground background;
+    private FrameLayout frameLayout;
+    private RelativeLayout stopWatchLayout;
+
 
     private final int UI_REFRESH_RATE = 100;
     private final int MSG_STOP_TIMER = 0;
@@ -83,11 +92,28 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(initLayout(getLayoutInflater()));
+    }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+    private View initLayout(LayoutInflater inflater) {
+        // Inflate xml layouts
+        View mainView = inflater.inflate(R.layout.activity_main, null);
+        View contentView = inflater.inflate(R.layout.content_main, null);
+        CoordinatorLayout coordinatorLayout =
+                (CoordinatorLayout) mainView.findViewById(R.id.coordinatorLayout);
+
+        // Main parts of UI
+        frameLayout = (FrameLayout) contentView.findViewById(R.id.framelayout_container);
+        stopWatchLayout = (RelativeLayout) contentView.findViewById(R.id.stopwatch_layout);
+        background = new CustomBackground(this);
+        // Toolbar
+        AppBarLayout appBarLayout = (AppBarLayout) mainView.findViewById(R.id.appBarLayout);
+        Toolbar toolbar = (Toolbar) mainView.findViewById(R.id.toolbar);
+        appBarLayout.removeAllViews();
+        appBarLayout.addView(toolbar);
+        setSupportActionBar(toolbar);
+        // Floating Button
+        FloatingActionButton fab = (FloatingActionButton) mainView.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -97,18 +123,30 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Initialize UI
+        startStopButton = (ToggleButton) contentView.findViewById(R.id.button_startStop);
+        lapReset = (Button) contentView.findViewById(R.id.button_lapReset);
+        textView_timeDisplay = (TextView) contentView.findViewById(R.id.textView_timeDisplay);
+        textView_splitDisplay = (TextView) contentView.findViewById(R.id.textView_splitTime);
         startStop();
-        textView_timeDisplay = (TextView) findViewById(R.id.textView_timeDisplay);
-        textView_splitDisplay = (TextView) findViewById(R.id.textView_splitTime);
         lapReset();
         // Set up RecyclerView for lap times
-        recyclerView_lapTimes = (RecyclerView) findViewById(R.id.recyclerView_lapTimes);
+        recyclerView_lapTimes = (RecyclerView) contentView.findViewById(R.id.recyclerView_lapTimes);
         recyclerView_lapTimes.setHasFixedSize(true);
         rVlayoutManager = new LinearLayoutManager(this);
         recyclerView_lapTimes.setLayoutManager(rVlayoutManager);
         mLapTimes = new ArrayList<>();
         rVadapter = new LapTimesAdapter(mLapTimes);
         recyclerView_lapTimes.setAdapter(rVadapter);
+
+        frameLayout.removeAllViews();
+        frameLayout.addView(background);
+        frameLayout.addView(stopWatchLayout);
+
+        coordinatorLayout.removeAllViews();
+        coordinatorLayout.addView(appBarLayout);
+        coordinatorLayout.addView(frameLayout);
+        coordinatorLayout.addView(fab);
+        return coordinatorLayout;
     }
 
     @Override
@@ -135,7 +173,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Listener for the StartStop Button
     private void startStop() {
-        startStopButton = (ToggleButton) findViewById(R.id.button_startStop);
         //Create a reference to a listener to be sure that listener exist as long as activity does
         CompoundButton.OnCheckedChangeListener listener = new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -166,7 +203,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Listener for the lapReset Button
     private void lapReset() {
-        lapReset = (Button) findViewById(R.id.button_lapReset);
         //Create a reference to a listener to be sure that listener exist as long as activity does
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
