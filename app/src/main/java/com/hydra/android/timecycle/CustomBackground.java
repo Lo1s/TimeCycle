@@ -16,6 +16,7 @@ public class CustomBackground extends View {
     private float width;
     private float height;
     private float x;
+    private ObjectAnimator animator;
 
     public CustomBackground(Context context) {
         super(context);
@@ -23,11 +24,8 @@ public class CustomBackground extends View {
         width = context.getResources().getDisplayMetrics().widthPixels;
         height = context.getResources().getDisplayMetrics().heightPixels;
         FloatEvaluator evaluator = new FloatEvaluator();
-        ObjectAnimator animator = ObjectAnimator.ofObject(
+        animator = ObjectAnimator.ofObject(
                 this, "transition", evaluator, 0f, width);
-        animator.setDuration(10000);
-        animator.start();
-
     }
 
     @Override
@@ -43,6 +41,23 @@ public class CustomBackground extends View {
     public void setTransition(float x) {
         this.x = x;
         invalidate();
+    }
+
+    public void startAnimation(long duration) {
+        animator.setDuration(duration);
+        animator.start();
+    }
+
+    public void pauseAnimaton() {
+        animator.pause();
+    }
+
+    public void resumeAnimation() {
+        animator.resume();
+    }
+
+    public void stopAnimation() {
+        animator.cancel();
     }
 
 }

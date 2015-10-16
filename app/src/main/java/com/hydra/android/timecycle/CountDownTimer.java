@@ -1,34 +1,47 @@
 package com.hydra.android.timecycle;
 
-// TODO: bug: start -> lap -> stop -> reset -> start
-public class StopWatch {
+/**
+ * Created by jslapnicka on 16.10.2015.
+ */
+public class CountDownTimer {
     private long startTime = 0;
-    private long elapsedTime = 0;
+    private long endTime = 0;
     private boolean isRunning = false;
     private boolean isStopped = false;
-    private long currentTime = 0;
+    private long elapsedTime = 0;
+    private long hour;
+    private long minute;
+    private long second;
 
-    public StopWatch() {
+    public CountDownTimer() {
 
     }
 
-    public StopWatch(long startTime, long endTime) {
+    public CountDownTimer(long startTime, long endTime) {
         this.startTime = startTime;
-        this.elapsedTime = endTime;
+        this.endTime = endTime;
+    }
+
+    public void setTime(long hour, long minute, long second) {
+        this.hour = hour * 60 * 60 * 1000;
+        this.minute = minute * 60 * 1000;
+        this.second = second * 1000;
     }
 
     public void start() {
-        if (!isStopped)
-            this.startTime = System.currentTimeMillis();
-        else {
-            this.startTime = System.currentTimeMillis() - elapsedTime;
+        // Convert to millis
+        if (!isStopped) {
+            this.startTime = System.currentTimeMillis() + hour + minute + second;
+            this.endTime = System.currentTimeMillis();
+        } else {
+            this.startTime = System.currentTimeMillis() + elapsedTime;
         }
         this.isRunning = true;
         this.isStopped = false;
     }
 
     public void stop() {
-        this.elapsedTime = System.currentTimeMillis() - startTime;
+        this.elapsedTime = startTime - System.currentTimeMillis();
         this.isRunning = true;
         this.isStopped = true;
     }
@@ -43,7 +56,7 @@ public class StopWatch {
 
     public void resetTime() {
         this.startTime = 0;
-        this.elapsedTime = 0;
+        this.endTime = 0;
         isStopped = true;
         isRunning = false;
     }
@@ -56,7 +69,7 @@ public class StopWatch {
     public long getElapsedTimeMilli() {
         long elapsedMillis = 0;
         if (isRunning) {
-            elapsedMillis = ((System.currentTimeMillis() - startTime) / 100) % 10;
+            elapsedMillis = ((startTime - System.currentTimeMillis()) / 100) % 10;
         }
         return elapsedMillis;
     }
@@ -65,18 +78,18 @@ public class StopWatch {
     public long getElapsedTimeSecs() {
         long elapsedSecs = 0;
         if (isRunning) {
-            elapsedSecs = ((System.currentTimeMillis() - startTime) / 1000) % 60;
+            elapsedSecs = ((startTime - System.currentTimeMillis()) / 1000) % 60;
         }
         return elapsedSecs;
     }
 
     // Returns time in minutes
     public long getElapsedTimeMinutes() {
-        long elapsedMins = 0;
+        long elapsedMinutes = 0;
         if (isRunning) {
-            elapsedMins = (((System.currentTimeMillis() - startTime) / 1000) / 60) % 60;
+            elapsedMinutes = (((startTime - System.currentTimeMillis()) / 1000) / 60) % 60;
         }
-        return elapsedMins;
+        return elapsedMinutes;
     }
 
     // Returns time in hours
@@ -84,9 +97,8 @@ public class StopWatch {
         long elapsedHours = 0;
         if (isRunning) {
             // TODO: Check the mod 24 if working
-            elapsedHours = ((((System.currentTimeMillis() - startTime) / 1000) / 60) / 60) % 24;
+            elapsedHours = ((((startTime - System.currentTimeMillis())  / 1000) / 60) / 60) % 24;
         }
         return elapsedHours;
     }
-
 }
