@@ -41,3 +41,9 @@ automatically without any user interaction during the routine.
 - [ ] Tint the buttons 
 - [ ] Vibration for buttons 
 - [ ] Notifications for training plan
+- [ ] Rating after workout (Did it, Almost, Killed it) 
+- [ ] Notify/ask (when launching next time) to change the routine if the user killed it previously (save the previous one as an option) 
+- [ ] Turn timer on by clicking on time and pop up time picker to the user 
+- [ ] Give UI hints on First launch (consider same action in menu) 
+- [ ] Cink when workout/pause times change 
+- [ ] Change color of the timer when finishing  
