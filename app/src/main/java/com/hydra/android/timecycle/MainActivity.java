@@ -104,12 +104,20 @@ public class MainActivity extends AppCompatActivity {
                 case MSG_START_TIMER:
                     if (!timer.isStopped()) {
                         timer.setTime(timerHour, timerMinute, timerSecond);
+                        // Convert time back to milliseconds
+                        long animationDuration =
+                                timerHour * 60 * 60 * 1000 +
+                                timerMinute * 60 * 1000 +
+                                timerSecond * 1000;
+                        background.startAnimation(animationDuration, Color.argb(255, 0, 150, 136));
                     }
                     timer.start();
+                    background.resumeAnimation();
                     handler.sendEmptyMessage(MSG_UPDATE_TIMER);
                     break;
                 case MSG_PAUSE_TIMER:
                     handler.removeMessages(MSG_UPDATE_TIMER);
+                    background.pauseAnimaton();
                     timer.pause();
                     break;
 

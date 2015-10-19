@@ -33,7 +33,6 @@ public class CustomBackground extends View {
         super.onDraw(canvas);
 
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(Color.BLUE);
 
         canvas.drawRect(0, 0, x, height, mPaint);
     }
@@ -43,7 +42,8 @@ public class CustomBackground extends View {
         invalidate();
     }
 
-    public void startAnimation(long duration) {
+    public void startAnimation(long duration, int color) {
+        mPaint.setColor(color);
         animator.setDuration(duration);
         animator.start();
     }
