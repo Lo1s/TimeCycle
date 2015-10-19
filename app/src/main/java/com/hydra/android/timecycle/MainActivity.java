@@ -52,13 +52,13 @@ public class MainActivity extends AppCompatActivity {
     private final int MSG_STOP_STOPWATCH = 0;
     private final int MSG_START_STOPWATCH = 1;
     private final int MSG_UPDATE_STOPWATCH = 2;
-    private final int MSG_STOP_TIMER = 3;
+    private final int MSG_PAUSE_TIMER = 3;
     private final int MSG_START_TIMER = 4;
     private final int MSG_UPDATE_TIMER = 5;
-    private StopWatch mainStopWatch = new StopWatch();
-    private StopWatch splitStopWatch = new StopWatch();
-    private CountDownTimer mainTimer = new CountDownTimer();
-    private CountDownTimer splitTimer = new CountDownTimer();
+    private final int MSG_STOP_TIMER = 6;
+    private StopWatch mainStopWatch = new StopWatch("main");
+    private StopWatch splitStopWatch = new StopWatch("split");
+    private CountDownTimer timer = new CountDownTimer();
     private ArrayList<String> mLapTimes;
 
 
@@ -67,6 +67,22 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+
+            long milliTimer = timer.getElapsedTimeMilli();
+            long secTimer = timer.getElapsedTimeSecs();
+            long minTimer = timer.getElapsedTimeMinutes();
+            long hourTimer = timer.getElapsedTimeHours();
+
+            long milliMainStopWatch = mainStopWatch.getElapsedTimeMilli();
+            long secMainStopWatch = mainStopWatch.getElapsedTimeSecs();
+            long minMainStopWatch = mainStopWatch.getElapsedTimeMinutes();
+            long hourMainStopWatch = mainStopWatch.getElapsedTimeHours();
+
+            long milliSplitStopWatch = splitStopWatch.getElapsedTimeMilli();
+            long secSplitStopWatch = splitStopWatch.getElapsedTimeSecs();
+            long minSplitStopWatch = splitStopWatch.getElapsedTimeMinutes();
+            long hourSplitStopWatch = splitStopWatch.getElapsedTimeHours();
+
             switch (msg.what) {
                 case MSG_START_STOPWATCH:
                     mainStopWatch.start();
@@ -79,45 +95,37 @@ public class MainActivity extends AppCompatActivity {
                     splitStopWatch.stop();
                     break;
                 case MSG_UPDATE_STOPWATCH:
-                    displayTime(formatTime(
-                            mainStopWatch.getElapsedTimeHours(),
-                            mainStopWatch.getElapsedTimeMinutes(),
-                            mainStopWatch.getElapsedTimeSecs(),
-                            mainStopWatch.getElapsedTimeMilli()));
-                    displaySplitTime(formatTime(
-                            splitStopWatch.getElapsedTimeHours(),
-                            splitStopWatch.getElapsedTimeMinutes(),
-                            splitStopWatch.getElapsedTimeSecs(),
-                            splitStopWatch.getElapsedTimeMilli()));
+                    displayTime(formatTime(hourMainStopWatch, minMainStopWatch,
+                            secMainStopWatch, milliMainStopWatch));
+                    displaySplitTime(formatTime(hourSplitStopWatch, minSplitStopWatch,
+                            secSplitStopWatch, milliSplitStopWatch));
                     handler.sendEmptyMessageDelayed(MSG_UPDATE_STOPWATCH, UI_REFRESH_RATE);
                     break;
                 case MSG_START_TIMER:
-                    if (!mainTimer.isStopped()) {
-                        mainTimer.setTime(timerHour, timerMinute, timerSecond);
-                        splitTimer.setTime(timerHour, timerMinute, timerSecond);
+                    if (!timer.isStopped()) {
+                        timer.setTime(timerHour, timerMinute, timerSecond);
                     }
-                    mainTimer.start();
-                    splitTimer.start();
+                    timer.start();
                     handler.sendEmptyMessage(MSG_UPDATE_TIMER);
                     break;
+                case MSG_PAUSE_TIMER:
+                    handler.removeMessages(MSG_UPDATE_TIMER);
+                    timer.pause();
+                    break;
+
                 case MSG_STOP_TIMER:
                     handler.removeMessages(MSG_UPDATE_TIMER);
-                    mainTimer.stop();
-                    splitTimer.stop();
+                    reset();
+                    startStopButton.setChecked(false);
                     break;
 
                 case MSG_UPDATE_TIMER:
-                    displayTime(formatTime(
-                            mainTimer.getElapsedTimeHours(),
-                            mainTimer.getElapsedTimeMinutes(),
-                            mainTimer.getElapsedTimeSecs(),
-                            mainTimer.getElapsedTimeMilli()));
-                    displaySplitTime(formatTime(
-                            splitTimer.getElapsedTimeHours(),
-                            splitTimer.getElapsedTimeMinutes(),
-                            splitTimer.getElapsedTimeSecs(),
-                            splitTimer.getElapsedTimeMilli()));
-                    handler.sendEmptyMessageDelayed(MSG_UPDATE_TIMER, UI_REFRESH_RATE);
+                    if (!isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
+                        displayTime(formatTime(hourTimer, minTimer, secTimer, milliTimer));
+                        handler.sendEmptyMessageDelayed(MSG_UPDATE_TIMER, UI_REFRESH_RATE);
+                    } else {
+                        sendEmptyMessage(MSG_STOP_TIMER);
+                    }
                     break;
             }
         }
@@ -198,8 +206,8 @@ public class MainActivity extends AppCompatActivity {
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                timePicker.show(getSupportFragmentManager(), TIMER);
-                
+                if (!mainStopWatch.isRunning())
+                    timePicker.show(getSupportFragmentManager(), TIMER);
             }
         };
         textView_timeDisplay.setOnClickListener(listener);
@@ -238,15 +246,39 @@ public class MainActivity extends AppCompatActivity {
                 if (isChecked) {
                     start();
                     startStopButton.setTextColor(Color.parseColor("#cc0000"));
-                    lapReset.setText(R.string.Lap);
+                    if (mainStopWatch.isRunning() || textView_timeDisplay.getText()
+                            .equals(getResources().getString(R.string.textView_default_time)))
+                        lapReset.setText(R.string.Lap);
+                    else {
+                        lapReset.setEnabled(false);
+                    }
                 } else {
-                    stop();
+                    if (mainStopWatch.isRunning() || timer.isRunning())
+                        stop();
                     startStopButton.setTextColor(Color.parseColor("#99cc00"));
+                    lapReset.setEnabled(true);
                     lapReset.setText(R.string.Reset);
                 }
             }
         };
         startStopButton.setOnCheckedChangeListener(listener);
+    }
+
+    // Listener for the lapReset Button
+    private void lapReset() {
+        lapReset = (Button) contentView.findViewById(R.id.button_lapReset);
+        //Create a reference to a listener to be sure that listener exist as long as activity does
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mainStopWatch.isStopped() || timer.isStopped()) {
+                    reset();
+                } else {
+                    lap();
+                }
+            }
+        };
+        lapReset.setOnClickListener(listener);
     }
 
     // Starts the StopWatch
@@ -261,57 +293,56 @@ public class MainActivity extends AppCompatActivity {
 
     // Stops the StopWatch
     private void stop() {
-        if (mainStopWatch.isRunning() || textView_timeDisplay.getText()
-                .equals(getResources().getString(R.string.textView_default_time))) {
+        if ((mainStopWatch.isRunning() || textView_timeDisplay.getText()
+                .equals(getResources().getString(R.string.textView_default_time)))
+                && !timer.isRunning()) {
             handler.sendEmptyMessage(MSG_STOP_STOPWATCH);
-        } else {
-            handler.sendEmptyMessage(MSG_STOP_TIMER);
+        } else if (timer.isRunning() && !mainStopWatch.isRunning()) {
+            handler.sendEmptyMessage(MSG_PAUSE_TIMER);
         }
-    }
-
-    // Listener for the lapReset Button
-    private void lapReset() {
-        lapReset = (Button) contentView.findViewById(R.id.button_lapReset);
-        //Create a reference to a listener to be sure that listener exist as long as activity does
-        View.OnClickListener listener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mainStopWatch.isStopped() || mainTimer.isStopped()) {
-                    reset();
-                } else {
-                    lap();
-                }
-            }
-        };
-        lapReset.setOnClickListener(listener);
     }
 
     // Laps the time
     private void lap() {
-        splitStopWatch.split();
-        mLapTimes.add(formatTime(
-                mainStopWatch.getElapsedTimeHours(),
-                mainStopWatch.getElapsedTimeMinutes(),
-                mainStopWatch.getElapsedTimeSecs(),
-                mainStopWatch.getElapsedTimeMilli()));
-        rVadapter.notifyDataSetChanged();
+        if (mainStopWatch.isRunning()) {
+            splitStopWatch.split();
+            mLapTimes.add(formatTime(
+                    mainStopWatch.getElapsedTimeHours(),
+                    mainStopWatch.getElapsedTimeMinutes(),
+                    mainStopWatch.getElapsedTimeSecs(),
+                    mainStopWatch.getElapsedTimeMilli()));
+            rVadapter.notifyDataSetChanged();
+        }
+
+    }
+
+    // Resets the time
+    private void reset() {
+        if (mainStopWatch.isRunning()) {
+            mainStopWatch.resetTime();
+            splitStopWatch.resetTime();
+        } else if (timer.isRunning()) {
+            timer.resetTime();
+        }
+        textView_timeDisplay.setText(R.string.textView_default_time);
+        textView_splitDisplay.setText(R.string.textView_default_time);
+        mLapTimes.clear();
     }
 
     public void setTimerTime(long hour, long minute, long second) {
         this.timerHour = hour;
         this.timerMinute = minute;
         this.timerSecond = second;
+        lapReset.setText(R.string.Reset);
+        lapReset.setEnabled(false);
     }
 
-    // Resets the time
-    private void reset() {
-        mainStopWatch.resetTime();
-        splitStopWatch.resetTime();
-        mainTimer.resetTime();
-        splitTimer.resetTime();
-        textView_timeDisplay.setText(R.string.textView_default_time);
-        textView_splitDisplay.setText(R.string.textView_default_time);
-        mLapTimes.clear();
+    private boolean isTimerFinished(long hour, long minute, long sec, long milli) {
+        if ((hour == 0) && (minute == 0) && (sec == 0) && (milli == 0)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // Display the main time

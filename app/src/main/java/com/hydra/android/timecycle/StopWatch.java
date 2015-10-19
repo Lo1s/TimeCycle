@@ -1,15 +1,21 @@
 package com.hydra.android.timecycle;
 
-// TODO: bug: start -> lap -> stop -> reset -> start
+import android.util.Log;
+
 public class StopWatch {
     private long startTime = 0;
     private long elapsedTime = 0;
     private boolean isRunning = false;
     private boolean isStopped = false;
-    private long currentTime = 0;
+    private String type = "";
+    private static final String TAG = "StopWatch";
 
     public StopWatch() {
 
+    }
+
+    public StopWatch(String type) {
+        this.type = type;
     }
 
     public StopWatch(long startTime, long endTime) {
@@ -18,6 +24,7 @@ public class StopWatch {
     }
 
     public void start() {
+        Log.i(TAG, type + " started");
         if (!isStopped)
             this.startTime = System.currentTimeMillis();
         else {
@@ -28,6 +35,7 @@ public class StopWatch {
     }
 
     public void stop() {
+        Log.i(TAG, type + " stopped");
         this.elapsedTime = System.currentTimeMillis() - startTime;
         this.isRunning = true;
         this.isStopped = true;
@@ -42,13 +50,15 @@ public class StopWatch {
     }
 
     public void resetTime() {
+        Log.i(TAG, type + " reseted");
         this.startTime = 0;
         this.elapsedTime = 0;
-        isStopped = true;
+        isStopped = false;
         isRunning = false;
     }
 
     public void split() {
+        Log.i(TAG, type + " splitted");
         this.startTime = System.currentTimeMillis();
     }
 

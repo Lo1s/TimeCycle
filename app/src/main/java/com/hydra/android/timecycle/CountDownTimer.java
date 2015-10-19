@@ -1,5 +1,7 @@
 package com.hydra.android.timecycle;
 
+import android.util.Log;
+
 /**
  * Created by jslapnicka on 16.10.2015.
  */
@@ -12,6 +14,7 @@ public class CountDownTimer {
     private long hour;
     private long minute;
     private long second;
+    private static final String TAG = "Timer";
 
     public CountDownTimer() {
 
@@ -29,6 +32,7 @@ public class CountDownTimer {
     }
 
     public void start() {
+        Log.i(TAG, "started");
         // Convert to millis
         if (!isStopped) {
             this.startTime = System.currentTimeMillis() + hour + minute + second;
@@ -41,6 +45,12 @@ public class CountDownTimer {
     }
 
     public void stop() {
+        Log.i(TAG, "stopped");
+        resetTime();
+    }
+
+    public void pause() {
+        Log.i(TAG, "paused");
         this.elapsedTime = startTime - System.currentTimeMillis();
         this.isRunning = true;
         this.isStopped = true;
@@ -55,13 +65,15 @@ public class CountDownTimer {
     }
 
     public void resetTime() {
+        Log.i(TAG, "reseted");
         this.startTime = 0;
         this.endTime = 0;
-        isStopped = true;
+        isStopped = false;
         isRunning = false;
     }
 
     public void split() {
+        Log.i(TAG, "splitted");
         this.startTime = System.currentTimeMillis();
     }
 
