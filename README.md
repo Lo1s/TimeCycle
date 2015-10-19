@@ -15,7 +15,8 @@ automatically without any user interaction during the routine.
 ### FURPS+ Requirements:
 * *Functional*:
   - simple StopWatch feature (start/stop/lap/reset)
-  - enhanced StopWatch where time for the activity and time for the rest is measured independently
+  - Timer feature
+  - enhanced Timer where time for the activity and time for the rest is measured independently
 * *Usability*:
   - basic UI description should be provided when the user launches the app for the first time
 * *Reliability*:
@@ -41,3 +42,12 @@ automatically without any user interaction during the routine.
 - [ ] Tint the buttons 
 - [ ] Vibration for buttons 
 - [ ] Notifications for training plan
+- [ ] Rating after workout (Did it, Almost, Killed it) 
+- [ ] Notify/ask (when launching next time) to change the routine if the user killed it previously (save the previous one as an option) 
+- [ ] Turn timer on by clicking on time and pop up time picker to the user 
+- [ ] Give UI hints on First launch (consider same action in menu) 
+- [ ] Cink when workout/pause times change 
+- [ ] Change color of the timer when finishing
+- [ ] Use split time history as workout history when running workout plan e.g "Workout: 0:01:00,0", "Rest:  0:00:30,0" or consider icons   
+- [ ] Add title with type of the time currently running exercise/rest 
+- [ ] Make the time run in background 
