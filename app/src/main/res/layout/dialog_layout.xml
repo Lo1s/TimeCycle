@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?><LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:orientation="vertical"
+android:layout_width="match_parent"
+android:layout_height="match_parent">
+
+    <!-- TODO: Consider drawable header -->
+
+    <EditText
+        android:id="@+id/editText_exerciseTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="time"
+        android:inputMethod=""
+        android:hint="@string/editText_exerciseTimeHint"/>
+
+    <EditText
+        android:id="@+id/editText_restTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="time"
+        android:hint="@string/editText_restTimeHint"/>
+
+    <EditText
+        android:id="@+id/editText_repetitions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:hint="@string/editText_repetitionsHint"/>
+
+
+</LinearLayout>

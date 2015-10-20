@@ -7,4 +7,11 @@
     <string name="Lap">Lap</string>
     <string name="Reset">Reset</string>
     <string name="Pause">Pause</string>
+    <string name="DialogTitle">Set up your exercise plan</string>
+    <string name="SaveRun">Save &amp; Run</string>
+    <string name="Save">Save</string>
+    <string name="Cancel">Cancel</string>
+    <string name="editText_exerciseTimeHint">Exercise Time</string>
+    <string name="editText_restTimeHint">Rest Time</string>
+    <string name="editText_repetitionsHint">Number of Repetitions</string>
 </resources>

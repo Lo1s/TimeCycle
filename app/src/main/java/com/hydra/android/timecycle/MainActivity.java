@@ -7,7 +7,6 @@ import android.os.Message;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,9 +22,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
+import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
+
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+        implements HmsPickerDialogFragment.HmsPickerDialogHandler {
 
     private final String TAG = "MainActivity";
     public static final String TIMER = "timerTextView";
@@ -43,10 +46,12 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout stopWatchLayout;
     private View mainView;
     private View contentView;
+    private TimePlanDialogFragment dialog;
+    private HmsPickerBuilder timePicker;
+
     private long timerHour;
     private long timerMinute;
     private long timerSecond;
-    private android.support.v4.app.DialogFragment timePicker;
 
     private final int UI_REFRESH_RATE = 100;
     private final int MSG_STOP_STOPWATCH = 0;
@@ -143,7 +148,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(initLayout(getLayoutInflater()));
-        timePicker = new TimePickerFragment();
+        timePicker = new HmsPickerBuilder()
+                .setFragmentManager(getSupportFragmentManager())
+                .setStyleResId(R.style.BetterPickersDialogFragment_Light);
+        dialog = new TimePlanDialogFragment();
     }
 
     // TODO: Reconsider the layout for better performance (redundant removing and adding view here)
@@ -169,8 +177,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                dialog.show(getSupportFragmentManager(), "dialog");
             }
         });
 
@@ -214,13 +221,18 @@ public class MainActivity extends AppCompatActivity {
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mainStopWatch.isRunning())
-                    timePicker.show(getSupportFragmentManager(), TIMER);
+                if (!mainStopWatch.isRunning()) {
+                    timePicker.show();
+                }
             }
         };
         textView_timeDisplay.setOnClickListener(listener);
     }
 
+    @Override
+    public void onDialogHmsSet(int reference, int hours, int minutes, int seconds) {
+        setTimerTime(hours, minutes, seconds);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -334,6 +346,8 @@ public class MainActivity extends AppCompatActivity {
         }
         textView_timeDisplay.setText(R.string.textView_default_time);
         textView_splitDisplay.setText(R.string.textView_default_time);
+        background.setBackgroundColor(Color.argb(255, 250, 250, 250));
+        background.invalidate();
         mLapTimes.clear();
     }
 
@@ -343,6 +357,7 @@ public class MainActivity extends AppCompatActivity {
         this.timerSecond = second;
         lapReset.setText(R.string.Reset);
         lapReset.setEnabled(false);
+        displayTime(formatTime(hour, minute, second, 0));
     }
 
     private boolean isTimerFinished(long hour, long minute, long sec, long milli) {
