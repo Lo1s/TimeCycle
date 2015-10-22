@@ -1,0 +1,100 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context="com.hydra.android.timecycle.TimerExerciseFragment">
+
+    <!-- TODO: Re-do hardcoded values -->
+    <LinearLayout
+        android:id="@+id/linearLayout_repetition"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView_repetition_title_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_gravity="center"
+            android:text="Repetitions"
+            style="@style/TimerTitlesFont"/>
+
+        <TextView
+            android:id="@+id/textView_setRepetition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0x"
+            android:textSize="70sp"
+            android:layout_marginTop="60dp"
+            android:layout_gravity="center"/>
+
+        <LinearLayout
+            android:id="@+id/linearLayout_repetition_plusButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="70dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/button_repetition_plus1"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="40dp"
+                android:background="@drawable/round_button"
+                android:text="+1"
+                android:textColor="@android:color/holo_green_light"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+            <Button
+                android:id="@+id/button_repetition_plus5"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/round_button"
+                android:text="+5"
+                android:textColor="@android:color/holo_green_light"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/linearLayout_repetition_minusButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/button_repetition_minus1"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="40dp"
+                android:background="@drawable/round_button"
+                android:text="-1"
+                android:textColor="@android:color/holo_red_dark"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+            <Button
+                android:id="@+id/button_repetition_minus5"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/round_button"
+                android:text="-5"
+                android:textColor="@android:color/holo_red_dark"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

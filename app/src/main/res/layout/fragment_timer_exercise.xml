@@ -1,0 +1,144 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context="com.hydra.android.timecycle.TimerExerciseFragment">
+
+    <!-- TODO: Re-do hardcoded values -->
+    <LinearLayout
+        android:id="@+id/linearLayout_exerciseTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView_exerciseTime_title_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_gravity="center"
+            android:text="Exercise Time"
+            style="@style/TimerTitlesFont"/>
+
+        <TextView
+            android:id="@+id/textView_setExerciseTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0:00:00,0"
+            android:textSize="70sp"
+            android:layout_marginTop="60dp"
+            android:layout_gravity="center"/>
+
+        <LinearLayout
+            android:id="@+id/linearLayout_exerciseTime_plusButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="70dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/button_exerciseTime_plus30sec"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/round_button"
+                android:text="+30 sec"
+                android:textColor="@android:color/holo_green_light"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+            <Button
+                android:id="@+id/button_exerciseTime_plus1min"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/round_button"
+                android:text="+1 min"
+                android:textColor="@android:color/holo_green_light"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+            <Button
+                android:id="@+id/button_exerciseTime_plus5min"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/round_button"
+                android:text="+5 min"
+                android:textColor="@android:color/holo_green_light"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+            <Button
+                android:id="@+id/button_exerciseTime_plus10min"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/round_button"
+                android:text="+10 min"
+                android:textColor="@android:color/holo_green_light"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/linearLayout_exerciseTime_minusButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/button_exerciseTime_minus30sec"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/round_button"
+                android:text="-30 sec"
+                android:textColor="@android:color/holo_red_dark"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+            <Button
+                android:id="@+id/button_exerciseTime_minus1min"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/round_button"
+                android:text="-1 min"
+                android:textColor="@android:color/holo_red_dark"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+            <Button
+                android:id="@+id/button_exerciseTime_minus5min"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/round_button"
+                android:text="-5 min"
+                android:textColor="@android:color/holo_red_dark"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+            <Button
+                android:id="@+id/button_exerciseTime_minus10min"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/round_button"
+                android:text="-10 min"
+                android:textColor="@android:color/holo_red_dark"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>
