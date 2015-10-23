@@ -104,7 +104,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="3s"
+                android:text="0s"
                 android:textAlignment="textEnd"
                 android:layout_gravity="end"
                 style="@style/TimerSummaryValuesFont"/>

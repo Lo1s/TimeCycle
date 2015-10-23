@@ -1,48 +1,77 @@
 package com.hydra.android.timecycle;
 
 import android.app.Activity;
-import android.net.Uri;
-import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
+import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
 
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link TimerRestFragment.OnFragmentInteractionListener} interface
+ * {@link TimerRestFragment.OnRestFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link TimerRestFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class TimerRestFragment extends android.support.v4.app.Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+public class TimerRestFragment extends android.support.v4.app.Fragment
+        implements HmsPickerDialogFragment.HmsPickerDialogHandler {
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private long restTime;
+    private int[] hmsTime;
 
-    private OnFragmentInteractionListener mListener;
+    private TextView textView_restTime;
+    private HmsPickerBuilder timePicker;
+    private Button btnPlus30sec;
+    private Button btnPlus1min;
+    private Button btnPlus5min;
+    private Button btnPlus10min;
+    private Button btnMin30sec;
+    private Button btnMin1min;
+    private Button btnMin5min;
+    private Button btnMin10min;
+
+    private OnRestFragmentInteractionListener mListener;
+
+    @Override
+    public void onDialogHmsSet(int reference, int hours, int minutes, int seconds) {
+        this.restTime = TimeFormatter.timeToMillis(hours, minutes, seconds);
+        setRestTime();
+    }
+
+    private void setRestTime() {
+        hmsTime = TimeFormatter.millisToHms(this.restTime);
+        displayTime(TimeFormatter.formatTimeToString(hmsTime[0], hmsTime[1], hmsTime[2], 0));
+        // Save it to arguments
+        getArguments().putLong(MyConstants.ARG_REST_TIME, restTime);
+    }
+
+    private void displayTime(String time) {
+        textView_restTime.setText(time);
+        textView_restTime.invalidate();
+        if (mListener != null) {
+            mListener.onRestFragmentInteraction(this.restTime);
+        }
+    }
 
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param restTime Parameter 1.
      * @return A new instance of fragment TimerRestFragment.
      */
-    // TODO: Rename and change types and number of parameters
-    public static TimerRestFragment newInstance(String param1, String param2) {
+    public static TimerRestFragment newInstance(long restTime) {
         TimerRestFragment fragment = new TimerRestFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putLong(MyConstants.ARG_REST_TIME, restTime);
         fragment.setArguments(args);
         return fragment;
     }
@@ -54,23 +83,105 @@ public class TimerRestFragment extends android.support.v4.app.Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (getArguments() != null) {
+            restTime = getArguments().getLong(MyConstants.ARG_REST_TIME);
+        }
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_timer_rest, container, false);
+        View v = inflater.inflate(R.layout.fragment_timer_rest, container, false);
+        textView_restTime = (TextView) v.findViewById(R.id.textView_setRestTime);
+        timePicker = new HmsPickerBuilder()
+                .setFragmentManager(getChildFragmentManager())
+                .setStyleResId(R.style.CustomBetterPickerTheme)
+                .setTargetFragment(this);
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                timePicker.show();
+            }
+        };
+
+        textView_restTime.setOnClickListener(listener);
+
+        initButtons(v);
+        setRestTime();
+        return v;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+    private void initButtons(View v) {
+        btnPlus30sec = (Button) v.findViewById(R.id.button_restTime_plus30sec);
+        btnPlus1min = (Button) v.findViewById(R.id.button_restTime_plus1min);
+        btnPlus5min = (Button) v.findViewById(R.id.button_restTime_plus5min);
+        btnPlus10min = (Button) v.findViewById(R.id.button_restTime_plus10min);
+        btnMin30sec = (Button) v.findViewById(R.id.button_restTime_minus30sec);
+        btnMin1min = (Button) v.findViewById(R.id.button_restTime_minus1min);
+        btnMin5min = (Button) v.findViewById(R.id.button_restTime_minus5min);
+        btnMin10min = (Button) v.findViewById(R.id.button_restTime_minus10min);
+
+        View.OnClickListener btnListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeTime(v);
+            }
+        };
+
+        btnPlus30sec.setOnClickListener(btnListener);
+        btnPlus1min.setOnClickListener(btnListener);
+        btnPlus5min.setOnClickListener(btnListener);
+        btnPlus10min.setOnClickListener(btnListener);
+        btnMin30sec.setOnClickListener(btnListener);
+        btnMin1min.setOnClickListener(btnListener);
+        btnMin5min.setOnClickListener(btnListener);
+        btnMin10min.setOnClickListener(btnListener);
+    }
+
+    private void changeTime(View v) {
+        switch (v.getId()) {
+            case R.id.button_restTime_plus30sec:
+                this.restTime += TimeFormatter.timeToMillis(0, 0, 30);
+                setRestTime();
+                break;
+            case R.id.button_restTime_plus1min:
+                this.restTime += TimeFormatter.timeToMillis(0, 1, 0);
+                setRestTime();
+                break;
+            case R.id.button_restTime_plus5min:
+                this.restTime += TimeFormatter.timeToMillis(0, 5, 0);
+                setRestTime();
+                break;
+            case R.id.button_restTime_plus10min:
+                this.restTime += TimeFormatter.timeToMillis(0, 10, 0);
+                setRestTime();
+                break;
+            case R.id.button_restTime_minus30sec:
+                if (restTime >= TimeFormatter.timeToMillis(0, 0, 30)) {
+                    this.restTime += TimeFormatter.timeToMillis(0, 0, -30);
+                    setRestTime();
+                }
+                break;
+            case R.id.button_restTime_minus1min:
+                if (restTime >= TimeFormatter.timeToMillis(0, 1, 0)) {
+                    this.restTime += TimeFormatter.timeToMillis(0, -1, 0);
+                    setRestTime();
+                }
+                break;
+            case R.id.button_restTime_minus5min:
+                if (restTime >= TimeFormatter.timeToMillis(0, 5, 0)) {
+                    this.restTime += TimeFormatter.timeToMillis(0, -5, 0);
+                    setRestTime();
+                }
+                break;
+            case R.id.button_restTime_minus10min:
+                if (restTime >= TimeFormatter.timeToMillis(0, 10, 0)) {
+                    this.restTime += TimeFormatter.timeToMillis(0, -10, 0);
+                    setRestTime();
+                }
+                break;
         }
     }
 
@@ -78,10 +189,10 @@ public class TimerRestFragment extends android.support.v4.app.Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (OnRestFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnExerciseFragmentInteractionListener");
         }
     }
 
@@ -101,9 +212,8 @@ public class TimerRestFragment extends android.support.v4.app.Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+    public interface OnRestFragmentInteractionListener {
+        public void onRestFragmentInteraction(long restTime);
     }
 
 }

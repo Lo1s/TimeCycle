@@ -50,9 +50,7 @@ public class MainActivity extends AppCompatActivity
     private HmsPickerBuilder timePicker;
 
     private long time;
-    private long timerHour;
-    private long timerMinute;
-    private long timerSecond;
+    private int[] hmsTime;
 
 
     private final int UI_REFRESH_RATE = 100;
@@ -70,6 +68,7 @@ public class MainActivity extends AppCompatActivity
 
 
     // Handler refreshes UI with the stopwatch time by the given UI_REFRESH_RATE
+    // TODO: Check the leaks
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -102,15 +101,15 @@ public class MainActivity extends AppCompatActivity
                     splitStopWatch.stop();
                     break;
                 case MSG_UPDATE_STOPWATCH:
-                    displayTime(formatTime(hourMainStopWatch, minMainStopWatch,
+                    displayTime(TimeFormatter.formatTimeToString(hourMainStopWatch, minMainStopWatch,
                             secMainStopWatch, milliMainStopWatch));
-                    displaySplitTime(formatTime(hourSplitStopWatch, minSplitStopWatch,
-                            secSplitStopWatch, milliSplitStopWatch));
+                    displaySplitTime(TimeFormatter.formatTimeToString(hourSplitStopWatch,
+                            minSplitStopWatch, secSplitStopWatch, milliSplitStopWatch));
                     handler.sendEmptyMessageDelayed(MSG_UPDATE_STOPWATCH, UI_REFRESH_RATE);
                     break;
                 case MSG_START_TIMER:
                     if (!timer.isStopped()) {
-                        timer.setTime(timerHour, timerMinute, timerSecond);
+                        timer.setTime(hmsTime[0], hmsTime[1], hmsTime[2]);
                         // Convert time back to milliseconds
                         background.startAnimation(time, Color.argb(255, 0, 150, 136));
                     }
@@ -132,7 +131,8 @@ public class MainActivity extends AppCompatActivity
 
                 case MSG_UPDATE_TIMER:
                     if (!isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
-                        displayTime(formatTime(hourTimer, minTimer, secTimer, milliTimer));
+                        displayTime(TimeFormatter.formatTimeToString(
+                                hourTimer, minTimer, secTimer, milliTimer));
                         handler.sendEmptyMessageDelayed(MSG_UPDATE_TIMER, UI_REFRESH_RATE);
                     } else {
                         sendEmptyMessage(MSG_STOP_TIMER);
@@ -228,7 +228,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onDialogHmsSet(int reference, int hours, int minutes, int seconds) {
-        this.time = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000);
+        this.time = TimeFormatter.timeToMillis(hours, minutes, seconds);
         setTimerTime(time);
     }
 
@@ -324,7 +324,7 @@ public class MainActivity extends AppCompatActivity
     private void lap() {
         if (mainStopWatch.isRunning()) {
             splitStopWatch.split();
-            mLapTimes.add(formatTime(
+            mLapTimes.add(TimeFormatter.formatTimeToString(
                     mainStopWatch.getElapsedTimeHours(),
                     mainStopWatch.getElapsedTimeMinutes(),
                     mainStopWatch.getElapsedTimeSecs(),
@@ -350,12 +350,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void setTimerTime(long time) {
-        this.timerHour = time / 60 / 60 / 1000;
-        this.timerMinute = time / 60 / 1000 - (timerHour * 60);
-        this.timerSecond = time / 1000 - (timerMinute * 60) - (timerHour * 60 * 60);
+        hmsTime = TimeFormatter.millisToHms(time);
         lapReset.setText(R.string.Reset);
         lapReset.setEnabled(false);
-        displayTime(formatTime(timerHour, timerMinute, timerSecond, 0));
+        displayTime(TimeFormatter.formatTimeToString(hmsTime[0], hmsTime[1], hmsTime[2], 0));
     }
 
     private boolean isTimerFinished(long hour, long minute, long sec, long milli) {
@@ -367,39 +365,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     // Display the main time
-    public void displayTime(String time) {
+    private void displayTime(String time) {
         textView_timeDisplay.setText(time);
     }
 
     private void displaySplitTime(String time) {
         textView_splitDisplay.setText(time);
-    }
-
-    // Format the time
-    public String formatTime(long hour, long minute, long second, long milli) {
-        StringBuilder builder = new StringBuilder();
-        String minuteString;
-        String secondString;
-
-        if (minute < 10) {
-            minuteString = "0" + minute;
-        } else {
-            minuteString = "" + minute;
-        }
-
-        if (second < 10) {
-            secondString = "0" + second;
-        } else {
-            secondString = "" + second;
-        }
-
-
-        builder.append(hour + ":");
-        builder.append(minuteString + ":");
-        builder.append(secondString + ",");
-        builder.append(milli + "");
-
-        return builder.toString();
     }
 
 }

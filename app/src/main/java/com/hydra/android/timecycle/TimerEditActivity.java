@@ -1,6 +1,5 @@
 package com.hydra.android.timecycle;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -13,11 +12,25 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 public class TimerEditActivity extends AppCompatActivity implements
-        TimerSummaryFragment.OnFragmentInteractionListener,
-        TimerExerciseFragment.OnFragmentInteractionListener,
-        TimerRestFragment.OnFragmentInteractionListener,
-        TimerRepetitionsFragment.OnFragmentInteractionListener,
-        TimerCountDownFragment.OnFragmentInteractionListener {
+        TimerSummaryFragment.OnSummaryFragmentInteractionListener,
+        TimerExerciseFragment.OnExerciseFragmentInteractionListener,
+        TimerRestFragment.OnRestFragmentInteractionListener,
+        TimerRepetitionsFragment.OnRepetitionsFragmentInteractionListener,
+        TimerCountDownFragment.OnCountDownFragmentInteractionListener {
+
+    private long exerciseTime = 0;
+    private long restTime = 0;
+    private int repetitions = 0;
+    private long countDownTime = 0;
+    private float intensity = 0;
+
+    private Bundle summaryBundle;
+
+    private TimerSummaryFragment summaryFragment;
+    private TimerExerciseFragment exerciseFragment;
+    private TimerRestFragment restFragment;
+    private TimerRepetitionsFragment repetitionsFragment;
+    private TimerCountDownFragment countDownFragment;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -38,6 +51,8 @@ public class TimerEditActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timer_edit);
+
+        summaryBundle = new Bundle();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -92,26 +107,25 @@ public class TimerEditActivity extends AppCompatActivity implements
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            Fragment fragment = null;
             switch (position) {
                 case 0:
-                    // TODO: fix the arguments
-                    fragment = TimerSummaryFragment.newInstance("Test", "Test");
-                    break;
+                    summaryFragment = TimerSummaryFragment.newInstance(exerciseTime, restTime,
+                            repetitions, countDownTime, intensity);
+                    return summaryFragment;
                 case 1:
-                    fragment = TimerExerciseFragment.newInstance("Test", "Test");
-                    break;
+                    exerciseFragment = TimerExerciseFragment.newInstance(exerciseTime);
+                    return exerciseFragment;
                 case 2:
-                    fragment = TimerRestFragment.newInstance("Test", "Test");
-                    break;
+                    restFragment = TimerRestFragment.newInstance(restTime);
+                    return restFragment;
                 case 3:
-                    fragment = TimerRepetitionsFragment.newInstance("Test", "Test");
-                    break;
+                    repetitionsFragment = TimerRepetitionsFragment.newInstance(repetitions);
+                    return repetitionsFragment;
                 case 4:
-                    fragment = TimerCountDownFragment.newInstance("Test", "Test");
-                    break;
+                    countDownFragment = TimerCountDownFragment.newInstance(countDownTime);
+                    return countDownFragment;
             }
-            return fragment;
+            return null;
         }
 
         @Override
@@ -139,7 +153,37 @@ public class TimerEditActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
+    public void onSummaryFragmentInteraction(float intensity) {
+        this.intensity = intensity;
+        summaryBundle.putFloat(MyConstants.ARG_INTENSITY, intensity);
+        summaryFragment.setSummary(summaryBundle);
+    }
 
+    @Override
+    public void onExerciseFragmentInteraction(long exerciseTime) {
+        this.exerciseTime = exerciseTime;
+        summaryBundle.putLong(MyConstants.ARG_EXERCISE_TIME, exerciseTime);
+        summaryFragment.setSummary(summaryBundle);
+    }
+
+    @Override
+    public void onRestFragmentInteraction(long restTime) {
+        this.restTime = restTime;
+        summaryBundle.putLong(MyConstants.ARG_REST_TIME, restTime);
+        summaryFragment.setSummary(summaryBundle);
+    }
+
+    @Override
+    public void onRepetitionsFragmentInteraction(int repetitions) {
+        this.repetitions = repetitions;
+        summaryBundle.putInt(MyConstants.ARG_REPETITIONS, repetitions);
+        summaryFragment.setSummary(summaryBundle);
+    }
+
+    @Override
+    public void onCountDownFragmentInteraction(long countDownTime) {
+        this.countDownTime = countDownTime;
+        summaryBundle.putLong(MyConstants.ARG_COUNTDOWN, countDownTime);
+        summaryFragment.setSummary(summaryBundle);
     }
 }

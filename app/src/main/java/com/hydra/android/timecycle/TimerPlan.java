@@ -9,6 +9,7 @@ public class TimerPlan {
     public static final int REST = 1;
     public static final int REPETITIONS = 2;
     public static final int COUNTDOWN = 3;
+    public static final int INTENSITY = 4;
 
     private final int id;
     private final long exerciseTimeInMillis;
