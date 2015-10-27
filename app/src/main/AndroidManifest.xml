@@ -19,7 +19,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".TimerEditActivity"
+            android:name=".TimerPlan.TimerEditActivity"
             android:label="@string/title_activity_timer_edit"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>

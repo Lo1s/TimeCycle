@@ -3,14 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    tools:context="com.hydra.android.timecycle.TimerSummaryFragment">
+    tools:context="com.hydra.android.timecycle.TimerPlan.TimerSummaryFragment">
 
     <!-- TODO: Re-do hardcoded values -->
     <TextView
         android:id="@+id/textView_editTimerSummary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
         android:text="Summary"
         style="@style/TimerTitlesFont"
         android:layout_centerHorizontal="true"
@@ -120,7 +119,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/linearLayout_summary"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:text="Intensity"
         style="@style/TimerSummaryTitleFont"/>
 
@@ -131,5 +130,45 @@
         android:layout_below="@+id/textView_intensity"
         android:layout_centerHorizontal="true" />
 
+    <LinearLayout
+        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/ratingBar">
+
+        <Button
+            android:id="@+id/button_start_timerPlan"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginRight="20dp"
+            android:text="Start"
+            android:textColor="@android:color/holo_green_light"
+            android:textAllCaps="false"
+            android:background="@drawable/round_button"/>
+
+        <Button
+            android:id="@+id/button_save_timerPlan"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginRight="20dp"
+            android:text="Save"
+            android:textAllCaps="false"
+            android:background="@drawable/round_button"
+            />
+
+        <Button
+            android:id="@+id/button_reset_timerPlan"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="Reset"
+            android:textAllCaps="false"
+            android:textColor="@android:color/holo_red_dark"
+            android:background="@drawable/round_button"
+            />
+
+
+    </LinearLayout>
 
 </RelativeLayout>

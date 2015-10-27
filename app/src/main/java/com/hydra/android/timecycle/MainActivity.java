@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +26,10 @@ import android.widget.ToggleButton;
 
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
+import com.hydra.android.timecycle.TimerPlan.TimerEditActivity;
+import com.hydra.android.timecycle.TimerPlan.TimerPlan;
+import com.hydra.android.timecycle.Utils.MyConstants;
+import com.hydra.android.timecycle.Utils.TimeFormatter;
 
 import java.util.ArrayList;
 
@@ -43,6 +48,7 @@ public class MainActivity extends AppCompatActivity
     private ToggleButton startStopButton;
     private Button lapReset;
     private CustomBackground background;
+    private int backgroundColor;
     private FrameLayout frameLayout;
     private RelativeLayout stopWatchLayout;
     private View mainView;
@@ -51,7 +57,11 @@ public class MainActivity extends AppCompatActivity
 
     private long time;
     private int[] hmsTime;
-
+    private int numberOfCycles = 1;
+    private int repetitions;
+    private long exerciseTime;
+    private long restTime;
+    private long countDownTime;
 
     private final int UI_REFRESH_RATE = 100;
     private final int MSG_STOP_STOPWATCH = 0;
@@ -65,7 +75,8 @@ public class MainActivity extends AppCompatActivity
     private StopWatch splitStopWatch = new StopWatch("split");
     private CountDownTimer timer = new CountDownTimer();
     private ArrayList<String> mLapTimes;
-
+    private TimerPlan timerPlan;
+    private int timerType;
 
     // Handler refreshes UI with the stopwatch time by the given UI_REFRESH_RATE
     // TODO: Check the leaks
@@ -111,10 +122,11 @@ public class MainActivity extends AppCompatActivity
                     if (!timer.isStopped()) {
                         timer.setTime(hmsTime[0], hmsTime[1], hmsTime[2]);
                         // Convert time back to milliseconds
-                        background.startAnimation(time, Color.argb(255, 0, 150, 136));
+                        background.startAnimation(time, backgroundColor);
                     }
                     timer.start();
                     background.resumeAnimation();
+                    startStopButton.setChecked(true);
                     handler.sendEmptyMessage(MSG_UPDATE_TIMER);
                     break;
                 case MSG_PAUSE_TIMER:
@@ -136,8 +148,21 @@ public class MainActivity extends AppCompatActivity
                         handler.sendEmptyMessageDelayed(MSG_UPDATE_TIMER, UI_REFRESH_RATE);
                     } else {
                         sendEmptyMessage(MSG_STOP_TIMER);
+
+                        if (timerPlan == null || (numberOfCycles) > repetitions) {
+                            textView_splitDisplay.setText(getResources()
+                                    .getString(R.string.textView_default_time));
+                            timerType = 0;
+                            timerPlan = null;
+                        }
+
+                        if (timerPlan != null && numberOfCycles <= repetitions) {
+                            timerType = (timerType + 1) % 2;
+                            runTimerPlan(timerPlan, timerType);
+                        }
+
+                        break;
                     }
-                    break;
             }
         }
     };
@@ -149,6 +174,23 @@ public class MainActivity extends AppCompatActivity
         timePicker = new HmsPickerBuilder()
                 .setFragmentManager(getSupportFragmentManager())
                 .setStyleResId(R.style.CustomBetterPickerTheme);
+
+        // Catch the TimerPlan which is sent as Parcelable via intent
+        Intent intent = getIntent();
+        if (intent.hasExtra(MyConstants.EXTRA_TIMERPLAN)) {
+            Log.i("TimerPlan", "Successfully passed");
+            timerPlan = intent.getParcelableExtra(MyConstants.EXTRA_TIMERPLAN);
+            exerciseTime = timerPlan.getExerciseTime();
+            restTime = timerPlan.getRestTime();
+            countDownTime = timerPlan.getCountDown();
+            repetitions = timerPlan.getRepetitions();
+            Log.i("TimerPlan", "ExerciseTime: " + exerciseTime);
+            Log.i("TimerPlan", "RestTime: " + restTime);
+            Log.i("TimerPlan", "CountDown: " + countDownTime);
+            Log.i("TimerPlan", "Repetitions: " + repetitions);
+            Log.i("TimerPlan", "Intensity: " + timerPlan.getIntensity());
+            runTimerPlan(timerPlan, MyConstants.EXERCISE_TIME);
+        }
     }
 
     // TODO: Reconsider the layout for better performance (redundant removing and adding view here)
@@ -229,6 +271,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDialogHmsSet(int reference, int hours, int minutes, int seconds) {
         this.time = TimeFormatter.timeToMillis(hours, minutes, seconds);
+        backgroundColor = Color.argb(255, 255, 64, 129);
         setTimerTime(time);
     }
 
@@ -264,8 +307,8 @@ public class MainActivity extends AppCompatActivity
                 if (isChecked) {
                     start();
                     startStopButton.setTextColor(Color.parseColor("#cc0000"));
-                    if (mainStopWatch.isRunning() || textView_timeDisplay.getText()
-                            .equals(getResources().getString(R.string.textView_default_time)))
+                    if (timerPlan == null && (mainStopWatch.isRunning() || textView_timeDisplay.getText()
+                            .equals(getResources().getString(R.string.textView_default_time))))
                         lapReset.setText(R.string.Lap);
                     else {
                         lapReset.setEnabled(false);
@@ -291,6 +334,9 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 if (mainStopWatch.isStopped() || timer.isStopped()) {
                     reset();
+                    timerPlan = null;
+                    textView_splitDisplay.setText(
+                            getResources().getString(R.string.textView_default_time));
                 } else {
                     lap();
                 }
@@ -299,21 +345,21 @@ public class MainActivity extends AppCompatActivity
         lapReset.setOnClickListener(listener);
     }
 
-    // Starts the StopWatch
+    // Starts the StopWatch/Timer
     private void start() {
-        if (mainStopWatch.isRunning() || textView_timeDisplay.getText().equals(
-                getResources().getString(R.string.textView_default_time))) {
+        if (timerPlan == null && (mainStopWatch.isRunning() || textView_timeDisplay.getText().equals(
+                getResources().getString(R.string.textView_default_time)))) {
             handler.sendEmptyMessage(MSG_START_STOPWATCH);
         } else {
             handler.sendEmptyMessage(MSG_START_TIMER);
         }
     }
 
-    // Stops the StopWatch
+    // Stops the StopWatch/Timer
     private void stop() {
-        if ((mainStopWatch.isRunning() || textView_timeDisplay.getText()
+        if (timerPlan == null && ((mainStopWatch.isRunning() || textView_timeDisplay.getText()
                 .equals(getResources().getString(R.string.textView_default_time)))
-                && !timer.isRunning()) {
+                && !timer.isRunning())) {
             handler.sendEmptyMessage(MSG_STOP_STOPWATCH);
         } else if (timer.isRunning() && !mainStopWatch.isRunning()) {
             handler.sendEmptyMessage(MSG_PAUSE_TIMER);
@@ -339,11 +385,11 @@ public class MainActivity extends AppCompatActivity
         if (mainStopWatch.isRunning()) {
             mainStopWatch.resetTime();
             splitStopWatch.resetTime();
+            textView_splitDisplay.setText(getResources().getString(R.string.textView_default_time));
         } else if (timer.isRunning()) {
             timer.resetTime();
         }
         textView_timeDisplay.setText(R.string.textView_default_time);
-        textView_splitDisplay.setText(R.string.textView_default_time);
         background.setBackgroundColor(Color.argb(255, 250, 250, 250));
         background.invalidate();
         mLapTimes.clear();
@@ -361,6 +407,29 @@ public class MainActivity extends AppCompatActivity
             return true;
         } else {
             return false;
+        }
+    }
+
+    private void runTimerPlan(TimerPlan timerPlan, int type) {
+        if (timerPlan != null) {
+            if (type == MyConstants.EXERCISE_TIME) {
+                time = exerciseTime;
+                setTimerTime(time);
+                // TODO: Make resources for translation compatibility
+                textView_splitDisplay.setText("Exercise (" + numberOfCycles
+                        + "/" + repetitions + ")");
+                backgroundColor = Color.argb(255, 255, 64, 129);
+            } else if (type == MyConstants.REST_TIME) {
+                time = restTime;
+                setTimerTime(time);
+                textView_splitDisplay.setText("Rest (" + numberOfCycles
+                        + "/" + repetitions + ")");
+                numberOfCycles++;
+                backgroundColor = Color.argb(255, 0, 150, 136);
+            }
+            start();
+        } else {
+            Log.i("TimerPlan", "TimerPlan is null");
         }
     }
 
