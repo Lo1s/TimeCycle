@@ -50,6 +50,8 @@ public class TimerEditActivity extends AppCompatActivity implements
      */
     private ViewPager mViewPager;
 
+    // TODO: Make sure that input handling covers bad input (negative count douwn etc.)
+    // TODO: Also test what happends if values are zero
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

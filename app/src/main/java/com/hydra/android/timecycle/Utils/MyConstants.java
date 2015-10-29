@@ -13,5 +13,6 @@ public class MyConstants {
     public static final String EXTRA_TIMERPLAN = "timerPlan";
     public static final int EXERCISE_TIME = 0;
     public static final int REST_TIME = 1;
+    public static final int COUNTDOWN_TIME = 2;
 
 }

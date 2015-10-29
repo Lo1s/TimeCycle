@@ -40,8 +40,10 @@ public class MainActivity extends AppCompatActivity
     public static final String TIMER = "timerTextView";
 
     // UI Components
+    private LayoutInflater inflater;
     private TextView textView_timeDisplay;
     private TextView textView_splitDisplay;
+    private TextView textView_countDownDisplay;
     private RecyclerView recyclerView_lapTimes;
     private RecyclerView.LayoutManager rVlayoutManager;
     private RecyclerView.Adapter rVadapter;
@@ -71,6 +73,10 @@ public class MainActivity extends AppCompatActivity
     private final int MSG_START_TIMER = 4;
     private final int MSG_UPDATE_TIMER = 5;
     private final int MSG_STOP_TIMER = 6;
+    private final int MSG_START_COUNTDOWN = 7;
+    private final int MSG_STOP_COUNTDOWN = 8;
+    private final int MSG_PAUSE_COUNTDOWN = 9;
+    private final int MSG_UPDATE_COUNTDOWN = 10;
     private StopWatch mainStopWatch = new StopWatch("main");
     private StopWatch splitStopWatch = new StopWatch("split");
     private CountDownTimer timer = new CountDownTimer();
@@ -158,11 +164,47 @@ public class MainActivity extends AppCompatActivity
 
                         if (timerPlan != null && numberOfCycles <= repetitions) {
                             timerType = (timerType + 1) % 2;
+                            Log.i("Test", timerType + "");
                             runTimerPlan(timerPlan, timerType);
                         }
-
-                        break;
                     }
+                    break;
+
+                case MSG_START_COUNTDOWN:
+                    if (!timer.isStopped()) {
+                        timer.setTime(hmsTime[0], hmsTime[1], hmsTime[2]);
+                        // Convert time back to milliseconds
+                        background.startAnimation(time, backgroundColor);
+                    }
+
+                    timer.start();
+                    background.resumeAnimation();
+                    handler.sendEmptyMessage(MSG_UPDATE_COUNTDOWN);
+                    break;
+
+                case MSG_STOP_COUNTDOWN:
+                    handler.removeMessages(MSG_UPDATE_COUNTDOWN);
+                    reset();
+                    break;
+
+                case MSG_PAUSE_COUNTDOWN:
+                    handler.removeMessages(MSG_UPDATE_COUNTDOWN);
+                    background.pauseAnimaton();
+                    timer.pause();
+                    break;
+
+                case MSG_UPDATE_COUNTDOWN:
+                    if (!isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
+                        displayCountdownTime(TimeFormatter.formatTimeToString(
+                                secTimer));
+                        handler.sendEmptyMessageDelayed(MSG_UPDATE_COUNTDOWN, UI_REFRESH_RATE);
+                    } else {
+                        sendEmptyMessage(MSG_STOP_COUNTDOWN);
+                        setContentView(initLayout(inflater));
+                        timerType = MyConstants.EXERCISE_TIME;
+                        runTimerPlan(timerPlan, timerType);
+                    }
+                    break;
             }
         }
     };
@@ -170,7 +212,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(initLayout(getLayoutInflater()));
+        inflater = getLayoutInflater();
+        setContentView(initLayout(inflater));
         timePicker = new HmsPickerBuilder()
                 .setFragmentManager(getSupportFragmentManager())
                 .setStyleResId(R.style.CustomBetterPickerTheme);
@@ -184,12 +227,13 @@ public class MainActivity extends AppCompatActivity
             restTime = timerPlan.getRestTime();
             countDownTime = timerPlan.getCountDown();
             repetitions = timerPlan.getRepetitions();
+            timerType = MyConstants.COUNTDOWN_TIME;
             Log.i("TimerPlan", "ExerciseTime: " + exerciseTime);
             Log.i("TimerPlan", "RestTime: " + restTime);
             Log.i("TimerPlan", "CountDown: " + countDownTime);
             Log.i("TimerPlan", "Repetitions: " + repetitions);
             Log.i("TimerPlan", "Intensity: " + timerPlan.getIntensity());
-            runTimerPlan(timerPlan, MyConstants.EXERCISE_TIME);
+            runTimerPlan(timerPlan, timerType);
         }
     }
 
@@ -231,6 +275,46 @@ public class MainActivity extends AppCompatActivity
         frameLayout.removeAllViews();
         frameLayout.addView(background);
         frameLayout.addView(stopWatchLayout);
+
+        coordinatorLayout.removeAllViews();
+        coordinatorLayout.addView(appBarLayout);
+        coordinatorLayout.addView(frameLayout);
+        coordinatorLayout.addView(fab);
+        return coordinatorLayout;
+    }
+
+    private View initCountdownLayout(LayoutInflater inflater) {
+        // Inflate xml layouts
+        mainView = inflater.inflate(R.layout.activity_main, null);
+        contentView = inflater.inflate(R.layout.countdown_layout, null);
+        CoordinatorLayout coordinatorLayout =
+                (CoordinatorLayout) mainView.findViewById(R.id.coordinatorLayout);
+
+        // Main parts of UI
+        frameLayout = (FrameLayout) contentView.findViewById(R.id.framelayout_container_countDown);
+        textView_countDownDisplay =
+                (TextView) contentView.findViewById(R.id.textView_countdown_main);
+        RelativeLayout countDownLayout =
+                (RelativeLayout) contentView.findViewById(R.id.relativeLayout_countDown);
+        background = new CustomBackground(this);
+        // Toolbar
+        AppBarLayout appBarLayout = (AppBarLayout) mainView.findViewById(R.id.appBarLayout);
+        Toolbar toolbar = (Toolbar) mainView.findViewById(R.id.toolbar);
+        appBarLayout.removeAllViews();
+        appBarLayout.addView(toolbar);
+        setSupportActionBar(toolbar);
+        // Floating Button
+        FloatingActionButton fab = (FloatingActionButton) mainView.findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), TimerEditActivity.class));
+            }
+        });
+
+        frameLayout.removeAllViews();
+        frameLayout.addView(background);
+        frameLayout.addView(countDownLayout);
 
         coordinatorLayout.removeAllViews();
         coordinatorLayout.addView(appBarLayout);
@@ -349,9 +433,16 @@ public class MainActivity extends AppCompatActivity
     private void start() {
         if (timerPlan == null && (mainStopWatch.isRunning() || textView_timeDisplay.getText().equals(
                 getResources().getString(R.string.textView_default_time)))) {
+            Log.i("start()", "Stopwatch start called");
             handler.sendEmptyMessage(MSG_START_STOPWATCH);
-        } else {
+        } else if (!textView_timeDisplay.getText().equals(
+                getResources().getString(R.string.textView_default_time))
+                && timerType != MyConstants.COUNTDOWN_TIME) {
+            Log.i("start()", "Timer start called");
             handler.sendEmptyMessage(MSG_START_TIMER);
+        } else if (timerType == MyConstants.COUNTDOWN_TIME) {
+            Log.i("start()", "Countdown start called");
+            handler.sendEmptyMessage(MSG_START_COUNTDOWN);
         }
     }
 
@@ -412,7 +503,12 @@ public class MainActivity extends AppCompatActivity
 
     private void runTimerPlan(TimerPlan timerPlan, int type) {
         if (timerPlan != null) {
-            if (type == MyConstants.EXERCISE_TIME) {
+            if (type == MyConstants.COUNTDOWN_TIME) {
+                setContentView(initCountdownLayout(inflater));
+                time = countDownTime;
+                setTimerTime(time);
+                backgroundColor = Color.argb(255, 63, 81, 181);
+            } else if (type == MyConstants.EXERCISE_TIME) {
                 time = exerciseTime;
                 setTimerTime(time);
                 // TODO: Make resources for translation compatibility
@@ -440,6 +536,10 @@ public class MainActivity extends AppCompatActivity
 
     private void displaySplitTime(String time) {
         textView_splitDisplay.setText(time);
+    }
+
+    private void displayCountdownTime(String time) {
+        textView_countDownDisplay.setText(time);
     }
 
 }

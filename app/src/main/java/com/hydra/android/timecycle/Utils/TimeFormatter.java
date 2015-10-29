@@ -97,4 +97,14 @@ public class TimeFormatter {
 
         return builder.toString();
     }
+
+    /** Returns string representation of the time in format "SS" */
+    public static String formatTimeToString(long seconds) {
+        StringBuilder builder = new StringBuilder();
+        String secondString;
+        secondString = "" + seconds;
+        builder.append(secondString + "");
+
+        return builder.toString();
+    }
 }
