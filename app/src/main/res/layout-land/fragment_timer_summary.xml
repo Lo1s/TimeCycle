@@ -6,7 +6,7 @@
     android:paddingLeft="16dp"
     android:paddingRight="16dp"
     android:paddingBottom="16dp"
-    tools:context="com.hydra.android.timecycle.TimerPlan.TimerSummaryFragment">
+    tools:context="com.hydra.android.timecycle.timerplan.TimerSummaryFragment">
 
     <!-- TODO: Re-do hardcoded values -->
 

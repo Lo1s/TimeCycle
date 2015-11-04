@@ -1,4 +1,4 @@
-package com.hydra.android.timecycle.TimerPlan;
+package com.hydra.android.timecycle.timerplan;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import com.codetroopers.betterpickers.numberpicker.NumberPickerBuilder;
 import com.codetroopers.betterpickers.numberpicker.NumberPickerDialogFragment;
-import com.hydra.android.timecycle.Utils.MyConstants;
+import com.hydra.android.timecycle.utils.MyConstants;
 import com.hydra.android.timecycle.R;
 
 

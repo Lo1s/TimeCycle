@@ -1,4 +1,4 @@
-package com.hydra.android.timecycle;
+package com.hydra.android.timecycle.mainui;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -26,10 +26,14 @@ import android.widget.ToggleButton;
 
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
-import com.hydra.android.timecycle.TimerPlan.TimerEditActivity;
-import com.hydra.android.timecycle.TimerPlan.TimerPlan;
-import com.hydra.android.timecycle.Utils.MyConstants;
-import com.hydra.android.timecycle.Utils.TimeFormatter;
+import com.hydra.android.timecycle.timers.CountDownTimer;
+import com.hydra.android.timecycle.common.LapTimesAdapter;
+import com.hydra.android.timecycle.R;
+import com.hydra.android.timecycle.timers.StopWatch;
+import com.hydra.android.timecycle.timerplan.TimerEditActivity;
+import com.hydra.android.timecycle.timerplan.TimerPlan;
+import com.hydra.android.timecycle.utils.MyConstants;
+import com.hydra.android.timecycle.utils.TimeFormatter;
 
 import java.util.ArrayList;
 

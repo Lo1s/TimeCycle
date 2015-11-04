@@ -1,4 +1,4 @@
-package com.hydra.android.timecycle;
+package com.hydra.android.timecycle.mainui;
 
 import android.animation.FloatEvaluator;
 import android.animation.ObjectAnimator;

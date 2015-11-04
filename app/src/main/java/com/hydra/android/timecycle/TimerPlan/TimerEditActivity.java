@@ -1,4 +1,4 @@
-package com.hydra.android.timecycle.TimerPlan;
+package com.hydra.android.timecycle.timerplan;
 
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
@@ -11,7 +11,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.hydra.android.timecycle.Utils.MyConstants;
+import com.hydra.android.timecycle.utils.MyConstants;
 import com.hydra.android.timecycle.R;
 
 public class TimerEditActivity extends AppCompatActivity implements

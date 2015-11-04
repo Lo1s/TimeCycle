@@ -1,4 +1,4 @@
-package com.hydra.android.timecycle;
+package com.hydra.android.timecycle.timers;
 
 import android.util.Log;
 

@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    tools:context="com.hydra.android.timecycle.TimerPlan.TimerRepetitionsFragment">
+    tools:context="com.hydra.android.timecycle.timerplan.TimerRepetitionsFragment">
 
     <!-- TODO: Re-do hardcoded values -->
 

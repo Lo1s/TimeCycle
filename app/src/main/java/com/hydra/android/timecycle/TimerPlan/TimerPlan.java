@@ -1,9 +1,9 @@
-package com.hydra.android.timecycle.TimerPlan;
+package com.hydra.android.timecycle.timerplan;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.hydra.android.timecycle.CountDownTimer;
+import com.hydra.android.timecycle.timers.CountDownTimer;
 
 /**
  * Created by jslapnicka on 22.10.2015.

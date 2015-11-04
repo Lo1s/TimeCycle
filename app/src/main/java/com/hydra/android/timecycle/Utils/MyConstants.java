@@ -1,4 +1,4 @@
-package com.hydra.android.timecycle.Utils;
+package com.hydra.android.timecycle.utils;
 
 /**
  * Created by jslapnicka on 23.10.2015.
