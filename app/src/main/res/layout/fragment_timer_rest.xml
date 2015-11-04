@@ -3,13 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    tools:context="com.hydra.android.timecycle.TimerPlan.TimerExerciseFragment">
+    tools:context="com.hydra.android.timecycle.TimerPlan.TimerRestFragment">
 
     <!-- TODO: Re-do hardcoded values -->
     <LinearLayout
         android:id="@+id/linearLayout_restTime"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
         android:orientation="vertical">
@@ -44,6 +44,7 @@
                 android:id="@+id/button_restTime_plus30sec"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
+                android:layout_marginBottom="10dp"
                 android:layout_marginRight="10dp"
                 android:background="@drawable/round_button"
                 android:text="+30 sec"
@@ -88,8 +89,7 @@
         <LinearLayout
             android:id="@+id/linearLayout_restTime_minusButtons"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:orientation="horizontal">
 

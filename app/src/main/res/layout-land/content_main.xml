@@ -13,11 +13,13 @@
         android:id="@+id/stopwatch_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="100dp">
+        android:layout_marginTop="80dp">
 
         <LinearLayout
+            android:id="@+id/linearLayout_displayTime"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_centerVertical="true"
             android:orientation="vertical"
             android:layout_centerInParent="true">
 
@@ -35,16 +37,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/textView_default_time"
                 android:textSize="70sp"/>
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recyclerView_lapTimes"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:scrollbars="vertical">
-
-
-            </android.support.v7.widget.RecyclerView>
 
             <RelativeLayout
                 android:id="@+id/layout_buttons"
@@ -80,6 +72,16 @@
             </RelativeLayout>
 
         </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView_lapTimes"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_toLeftOf="@id/linearLayout_displayTime"
+            android:scrollbars="vertical"
+            android:paddingBottom="30dp">
+
+        </android.support.v7.widget.RecyclerView>
 
     </RelativeLayout>
 

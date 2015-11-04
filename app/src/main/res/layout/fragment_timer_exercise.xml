@@ -6,10 +6,11 @@
     tools:context="com.hydra.android.timecycle.TimerPlan.TimerExerciseFragment">
 
     <!-- TODO: Re-do hardcoded values -->
+
     <LinearLayout
         android:id="@+id/linearLayout_exerciseTime"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
         android:orientation="vertical">
@@ -36,6 +37,7 @@
             android:id="@+id/linearLayout_exerciseTime_plusButtons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:clipToPadding="false"
             android:layout_gravity="center"
             android:layout_marginTop="70dp"
             android:orientation="horizontal">
@@ -45,6 +47,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_marginRight="10dp"
+                android:layout_marginBottom="10dp"
                 android:background="@drawable/round_button"
                 android:text="+30 sec"
                 android:textColor="@android:color/holo_green_light"
@@ -88,8 +91,7 @@
         <LinearLayout
             android:id="@+id/linearLayout_exerciseTime_minusButtons"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:orientation="horizontal">
 

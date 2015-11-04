@@ -214,6 +214,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         inflater = getLayoutInflater();
         setContentView(initLayout(inflater));
+
         timePicker = new HmsPickerBuilder()
                 .setFragmentManager(getSupportFragmentManager())
                 .setStyleResId(R.style.CustomBetterPickerTheme);
