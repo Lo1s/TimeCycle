@@ -35,6 +35,7 @@ import com.hydra.android.timecycle.timerplan.TimerPlan;
 import com.hydra.android.timecycle.utils.MyConstants;
 import com.hydra.android.timecycle.utils.TimeFormatter;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
@@ -69,18 +70,19 @@ public class MainActivity extends AppCompatActivity
     private long restTime;
     private long countDownTime;
 
-    private final int UI_REFRESH_RATE = 100;
-    private final int MSG_STOP_STOPWATCH = 0;
-    private final int MSG_START_STOPWATCH = 1;
-    private final int MSG_UPDATE_STOPWATCH = 2;
-    private final int MSG_PAUSE_TIMER = 3;
-    private final int MSG_START_TIMER = 4;
-    private final int MSG_UPDATE_TIMER = 5;
-    private final int MSG_STOP_TIMER = 6;
-    private final int MSG_START_COUNTDOWN = 7;
-    private final int MSG_STOP_COUNTDOWN = 8;
-    private final int MSG_PAUSE_COUNTDOWN = 9;
-    private final int MSG_UPDATE_COUNTDOWN = 10;
+    private TimerHander handler;
+    private final static int UI_REFRESH_RATE = 100;
+    private final static int MSG_STOP_STOPWATCH = 0;
+    private final static int MSG_START_STOPWATCH = 1;
+    private final static int MSG_UPDATE_STOPWATCH = 2;
+    private final static int MSG_PAUSE_TIMER = 3;
+    private final static int MSG_START_TIMER = 4;
+    private final static int MSG_UPDATE_TIMER = 5;
+    private final static int MSG_STOP_TIMER = 6;
+    private final static int MSG_START_COUNTDOWN = 7;
+    private final static int MSG_STOP_COUNTDOWN = 8;
+    private final static int MSG_PAUSE_COUNTDOWN = 9;
+    private final static int MSG_UPDATE_COUNTDOWN = 10;
     private StopWatch mainStopWatch = new StopWatch("main");
     private StopWatch splitStopWatch = new StopWatch("split");
     private CountDownTimer timer = new CountDownTimer();
@@ -89,139 +91,164 @@ public class MainActivity extends AppCompatActivity
     private int timerType;
 
     // Handler refreshes UI with the stopwatch time by the given UI_REFRESH_RATE
-    // TODO: Check the leaks
-    private Handler handler = new Handler() {
+    // made it static to prevent memory leaks
+    private static class TimerHander extends Handler {
+
+        private final WeakReference<MainActivity> mainActivityWeakReference;
+
+        TimerHander(MainActivity activity) {
+            mainActivityWeakReference = new WeakReference<MainActivity>(activity);
+        }
+
         @Override
         public void handleMessage(Message msg) {
-            super.handleMessage(msg);
+            MainActivity mActivity = mainActivityWeakReference.get();
 
-            long milliTimer = timer.getElapsedTimeMilli();
-            long secTimer = timer.getElapsedTimeSecs();
-            long minTimer = timer.getElapsedTimeMinutes();
-            long hourTimer = timer.getElapsedTimeHours();
+            if (mActivity != null) {
+                super.handleMessage(msg);
 
-            long milliMainStopWatch = mainStopWatch.getElapsedTimeMilli();
-            long secMainStopWatch = mainStopWatch.getElapsedTimeSecs();
-            long minMainStopWatch = mainStopWatch.getElapsedTimeMinutes();
-            long hourMainStopWatch = mainStopWatch.getElapsedTimeHours();
+                long milliTimer = mActivity.timer.getElapsedTimeMilli();
+                long secTimer = mActivity.timer.getElapsedTimeSecs();
+                long minTimer = mActivity.timer.getElapsedTimeMinutes();
+                long hourTimer = mActivity.timer.getElapsedTimeHours();
 
-            long milliSplitStopWatch = splitStopWatch.getElapsedTimeMilli();
-            long secSplitStopWatch = splitStopWatch.getElapsedTimeSecs();
-            long minSplitStopWatch = splitStopWatch.getElapsedTimeMinutes();
-            long hourSplitStopWatch = splitStopWatch.getElapsedTimeHours();
+                long milliMainStopWatch = mActivity.mainStopWatch.getElapsedTimeMilli();
+                long secMainStopWatch = mActivity.mainStopWatch.getElapsedTimeSecs();
+                long minMainStopWatch = mActivity.mainStopWatch.getElapsedTimeMinutes();
+                long hourMainStopWatch = mActivity.mainStopWatch.getElapsedTimeHours();
 
-            switch (msg.what) {
-                case MSG_START_STOPWATCH:
-                    mainStopWatch.start();
-                    splitStopWatch.start();
-                    handler.sendEmptyMessage(MSG_UPDATE_STOPWATCH);
-                    break;
-                case MSG_STOP_STOPWATCH:
-                    handler.removeMessages(MSG_UPDATE_STOPWATCH);
-                    mainStopWatch.stop();
-                    splitStopWatch.stop();
-                    break;
-                case MSG_UPDATE_STOPWATCH:
-                    displayTime(TimeFormatter.formatTimeToString(hourMainStopWatch, minMainStopWatch,
-                            secMainStopWatch, milliMainStopWatch));
-                    displaySplitTime(TimeFormatter.formatTimeToString(hourSplitStopWatch,
-                            minSplitStopWatch, secSplitStopWatch, milliSplitStopWatch));
-                    handler.sendEmptyMessageDelayed(MSG_UPDATE_STOPWATCH, UI_REFRESH_RATE);
-                    break;
-                case MSG_START_TIMER:
-                    if (!timer.isStopped()) {
-                        timer.setTime(hmsTime[0], hmsTime[1], hmsTime[2]);
-                        // Convert time back to milliseconds
-                        background.startAnimation(time, backgroundColor);
-                    }
-                    timer.start();
-                    background.resumeAnimation();
-                    startStopButton.setChecked(true);
-                    handler.sendEmptyMessage(MSG_UPDATE_TIMER);
-                    break;
-                case MSG_PAUSE_TIMER:
-                    handler.removeMessages(MSG_UPDATE_TIMER);
-                    background.pauseAnimaton();
-                    timer.pause();
-                    break;
+                long milliSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeMilli();
+                long secSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeSecs();
+                long minSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeMinutes();
+                long hourSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeHours();
 
-                case MSG_STOP_TIMER:
-                    handler.removeMessages(MSG_UPDATE_TIMER);
-                    reset();
-                    startStopButton.setChecked(false);
-                    break;
+                switch (msg.what) {
+                    case MainActivity.MSG_START_STOPWATCH:
+                        mActivity.mainStopWatch.start();
+                        mActivity.splitStopWatch.start();
+                        mActivity.handler.sendEmptyMessage(MSG_UPDATE_STOPWATCH);
+                        break;
+                    case MSG_STOP_STOPWATCH:
+                        mActivity.handler.removeMessages(MSG_UPDATE_STOPWATCH);
+                        mActivity.mainStopWatch.stop();
+                        mActivity.splitStopWatch.stop();
+                        break;
+                    case MSG_UPDATE_STOPWATCH:
+                        mActivity.displayTime(TimeFormatter.formatTimeToString(hourMainStopWatch,
+                                minMainStopWatch, secMainStopWatch, milliMainStopWatch));
+                        mActivity.displaySplitTime(TimeFormatter.formatTimeToString(
+                                hourSplitStopWatch, minSplitStopWatch, secSplitStopWatch,
+                                milliSplitStopWatch));
+                        mActivity.handler.sendEmptyMessageDelayed(MSG_UPDATE_STOPWATCH,
+                                UI_REFRESH_RATE);
+                        break;
+                    case MSG_START_TIMER:
+                        if (!mActivity.timer.isStopped()) {
+                            mActivity.timer.setTime(mActivity.hmsTime[0], mActivity.hmsTime[1],
+                                    mActivity.hmsTime[2]);
+                            // Convert time back to milliseconds
+                            mActivity.background.startAnimation(mActivity.time,
+                                    mActivity.backgroundColor);
+                        }
+                        mActivity.timer.start();
+                        mActivity.background.resumeAnimation();
+                        mActivity.startStopButton.setChecked(true);
+                        mActivity.handler.sendEmptyMessage(MSG_UPDATE_TIMER);
+                        break;
+                    case MSG_PAUSE_TIMER:
+                        mActivity.handler.removeMessages(MSG_UPDATE_TIMER);
+                        mActivity.background.pauseAnimaton();
+                        mActivity.timer.pause();
+                        break;
 
-                case MSG_UPDATE_TIMER:
-                    if (!isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
-                        displayTime(TimeFormatter.formatTimeToString(
-                                hourTimer, minTimer, secTimer, milliTimer));
-                        handler.sendEmptyMessageDelayed(MSG_UPDATE_TIMER, UI_REFRESH_RATE);
-                    } else {
-                        sendEmptyMessage(MSG_STOP_TIMER);
+                    case MSG_STOP_TIMER:
+                        mActivity.handler.removeMessages(MSG_UPDATE_TIMER);
+                        mActivity.reset();
+                        mActivity.startStopButton.setChecked(false);
+                        break;
 
-                        if (timerPlan == null || (numberOfCycles) > repetitions) {
-                            textView_splitDisplay.setText(getResources()
-                                    .getString(R.string.textView_default_time));
-                            timerType = 0;
-                            timerPlan = null;
+                    case MSG_UPDATE_TIMER:
+                        if (!mActivity.isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
+                            mActivity.displayTime(TimeFormatter.formatTimeToString(
+                                    hourTimer, minTimer, secTimer, milliTimer));
+                            mActivity.handler.sendEmptyMessageDelayed(MSG_UPDATE_TIMER,
+                                    UI_REFRESH_RATE);
+                        } else {
+                            sendEmptyMessage(MSG_STOP_TIMER);
+
+                            if (mActivity.timerPlan == null ||
+                                    (mActivity.numberOfCycles) > mActivity.repetitions) {
+                                mActivity.textView_splitDisplay.setText(mActivity.getResources()
+                                        .getString(R.string.textView_default_time));
+                                mActivity.timerType = 0;
+                                mActivity.timerPlan = null;
+                            }
+
+                            if (mActivity.timerPlan != null &&
+                                    mActivity.numberOfCycles <= mActivity.repetitions) {
+                                mActivity.timerType = (mActivity.timerType + 1) % 2;
+                                mActivity.runTimerPlan(mActivity.timerPlan, mActivity.timerType);
+                            }
+                        }
+                        break;
+
+                    case MSG_START_COUNTDOWN:
+                        if (!mActivity.timer.isStopped()) {
+                            mActivity.timer.setTime(mActivity.hmsTime[0], mActivity.hmsTime[1],
+                                    mActivity.hmsTime[2]);
+                            // Convert time back to milliseconds
+                            mActivity.background.startAnimation(mActivity.time,
+                                    mActivity.backgroundColor);
                         }
 
-                        if (timerPlan != null && numberOfCycles <= repetitions) {
-                            timerType = (timerType + 1) % 2;
-                            Log.i("Test", timerType + "");
-                            runTimerPlan(timerPlan, timerType);
+                        mActivity.timer.start();
+                        mActivity.background.resumeAnimation();
+                        mActivity.handler.sendEmptyMessage(MSG_UPDATE_COUNTDOWN);
+                        break;
+
+                    case MSG_STOP_COUNTDOWN:
+                        mActivity.handler.removeMessages(MSG_UPDATE_COUNTDOWN);
+                        mActivity.reset();
+                        break;
+
+                    case MSG_PAUSE_COUNTDOWN:
+                        mActivity.handler.removeMessages(MSG_UPDATE_COUNTDOWN);
+                        mActivity.background.pauseAnimaton();
+                        mActivity.timer.pause();
+                        break;
+
+                    case MSG_UPDATE_COUNTDOWN:
+                        if (!mActivity.isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
+                            mActivity.displayCountdownTime(TimeFormatter.formatTimeToString(
+                                    secTimer));
+                            mActivity.handler.sendEmptyMessageDelayed(MSG_UPDATE_COUNTDOWN,
+                                    UI_REFRESH_RATE);
+                        } else {
+                            sendEmptyMessage(MSG_STOP_COUNTDOWN);
+                            mActivity.setContentView(mActivity.initLayout(mActivity.inflater));
+                            mActivity.timerType = MyConstants.EXERCISE_TIME;
+                            mActivity.runTimerPlan(mActivity.timerPlan, mActivity.timerType);
                         }
-                    }
-                    break;
-
-                case MSG_START_COUNTDOWN:
-                    if (!timer.isStopped()) {
-                        timer.setTime(hmsTime[0], hmsTime[1], hmsTime[2]);
-                        // Convert time back to milliseconds
-                        background.startAnimation(time, backgroundColor);
-                    }
-
-                    timer.start();
-                    background.resumeAnimation();
-                    handler.sendEmptyMessage(MSG_UPDATE_COUNTDOWN);
-                    break;
-
-                case MSG_STOP_COUNTDOWN:
-                    handler.removeMessages(MSG_UPDATE_COUNTDOWN);
-                    reset();
-                    break;
-
-                case MSG_PAUSE_COUNTDOWN:
-                    handler.removeMessages(MSG_UPDATE_COUNTDOWN);
-                    background.pauseAnimaton();
-                    timer.pause();
-                    break;
-
-                case MSG_UPDATE_COUNTDOWN:
-                    if (!isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
-                        displayCountdownTime(TimeFormatter.formatTimeToString(
-                                secTimer));
-                        handler.sendEmptyMessageDelayed(MSG_UPDATE_COUNTDOWN, UI_REFRESH_RATE);
-                    } else {
-                        sendEmptyMessage(MSG_STOP_COUNTDOWN);
-                        setContentView(initLayout(inflater));
-                        timerType = MyConstants.EXERCISE_TIME;
-                        runTimerPlan(timerPlan, timerType);
-                    }
-                    break;
+                        break;
+                }
             }
         }
-    };
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         inflater = getLayoutInflater();
         setContentView(initLayout(inflater));
-
         timePicker = new HmsPickerBuilder()
                 .setFragmentManager(getSupportFragmentManager())
                 .setStyleResId(R.style.CustomBetterPickerTheme);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handler = new TimerHander(this);
 
         // Catch the TimerPlan which is sent as Parcelable via intent
         Intent intent = getIntent();
@@ -240,6 +267,12 @@ public class MainActivity extends AppCompatActivity
             Log.i("TimerPlan", "Intensity: " + timerPlan.getIntensity());
             runTimerPlan(timerPlan, timerType);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler = null;
     }
 
     // TODO: Reconsider the layout for better performance (redundant removing and adding view here)
