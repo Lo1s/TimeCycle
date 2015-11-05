@@ -1,6 +1,8 @@
 package com.hydra.android.timecycle.mainui;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,20 +20,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
-import com.hydra.android.timecycle.timers.CountDownTimer;
-import com.hydra.android.timecycle.common.LapTimesAdapter;
 import com.hydra.android.timecycle.R;
-import com.hydra.android.timecycle.timers.StopWatch;
+import com.hydra.android.timecycle.common.LapTimesAdapter;
 import com.hydra.android.timecycle.timerplan.TimerEditActivity;
 import com.hydra.android.timecycle.timerplan.TimerPlan;
+import com.hydra.android.timecycle.timers.CountDownTimer;
+import com.hydra.android.timecycle.timers.StopWatch;
 import com.hydra.android.timecycle.utils.MyConstants;
 import com.hydra.android.timecycle.utils.TimeFormatter;
 
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView recyclerView_lapTimes;
     private RecyclerView.LayoutManager rVlayoutManager;
     private RecyclerView.Adapter rVadapter;
-    private ToggleButton startStopButton;
+    private Button startStopButton;
     private Button lapReset;
     private CustomBackground background;
     private int backgroundColor;
@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity
     private long restTime;
     private long countDownTime;
 
+    // Timer Handler & messages
     private TimerHander handler;
     private final static int UI_REFRESH_RATE = 100;
     private final static int MSG_STOP_STOPWATCH = 0;
@@ -83,26 +84,45 @@ public class MainActivity extends AppCompatActivity
     private final static int MSG_STOP_COUNTDOWN = 8;
     private final static int MSG_PAUSE_COUNTDOWN = 9;
     private final static int MSG_UPDATE_COUNTDOWN = 10;
+
+    // Helper timer classes
     private StopWatch mainStopWatch = new StopWatch("main");
     private StopWatch splitStopWatch = new StopWatch("split");
     private CountDownTimer timer = new CountDownTimer();
+
     private ArrayList<String> mLapTimes;
     private TimerPlan timerPlan;
     private int timerType;
+
+    // Saving activity state during re-orientation
+    private final static String TYPE_OF_TIMER = "typeOfTimer";
+    private final static int STOPWATCH_ISRUNNING = 0;
+    private final static int TIMER_ISRUNNING = 1;
+    private final static int NONE_TIMER_ISRUNNING = -1;
+    private final static String SAVED_MAIN_STOPWATCH_TIME = "savedTimeMainStopWatch";
+    private final static String SAVED_SPLIT_STOPWATCH_TIME = "savedTimeSplitStopWatch";
+    private final static String SAVED_TIMER_TIME = "savedTimeTimer";
+    private boolean isStopWatchRunning;
+    private boolean isTimerRunning;
 
     // Handler refreshes UI with the stopwatch time by the given UI_REFRESH_RATE
     // made it static to prevent memory leaks
     private static class TimerHander extends Handler {
 
-        private final WeakReference<MainActivity> mainActivityWeakReference;
+        private WeakReference<MainActivity> mTarget;
 
-        TimerHander(MainActivity activity) {
-            mainActivityWeakReference = new WeakReference<MainActivity>(activity);
+        TimerHander(MainActivity target) {
+            mTarget = new WeakReference<MainActivity>(target);
         }
+
+        public void setTarget(MainActivity target) {
+            mTarget = new WeakReference<MainActivity>(target);
+        }
+
 
         @Override
         public void handleMessage(Message msg) {
-            MainActivity mActivity = mainActivityWeakReference.get();
+            MainActivity mActivity = mTarget.get();
 
             if (mActivity != null) {
                 super.handleMessage(msg);
@@ -152,7 +172,6 @@ public class MainActivity extends AppCompatActivity
                         }
                         mActivity.timer.start();
                         mActivity.background.resumeAnimation();
-                        mActivity.startStopButton.setChecked(true);
                         mActivity.handler.sendEmptyMessage(MSG_UPDATE_TIMER);
                         break;
                     case MSG_PAUSE_TIMER:
@@ -164,7 +183,9 @@ public class MainActivity extends AppCompatActivity
                     case MSG_STOP_TIMER:
                         mActivity.handler.removeMessages(MSG_UPDATE_TIMER);
                         mActivity.reset();
-                        mActivity.startStopButton.setChecked(false);
+                        mActivity.startStopButton.setTextColor(Color.parseColor("#99cc00"));
+                        mActivity.startStopButton.setText(R.string.Start);
+                        mActivity.lapReset.setEnabled(true);
                         break;
 
                     case MSG_UPDATE_TIMER:
@@ -248,7 +269,30 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        handler = new TimerHander(this);
+        if (handler == null)
+            handler = new TimerHander(this);
+        else
+            handler.setTarget(this);
+
+        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        if (sharedPreferences != null) {
+            switch (sharedPreferences.getInt(TYPE_OF_TIMER, NONE_TIMER_ISRUNNING)) {
+                case STOPWATCH_ISRUNNING:
+                    Log.i("Test", "Main StopWatch saved time: "
+                            + sharedPreferences.getLong(SAVED_MAIN_STOPWATCH_TIME, 0));
+                    Log.i("Test", "Split StopWatch saved time: "
+                            + sharedPreferences.getLong(SAVED_SPLIT_STOPWATCH_TIME, 0));
+                    break;
+                case TIMER_ISRUNNING:
+                    Log.i("Test", "Timer saved time: "
+                            + sharedPreferences.getLong(SAVED_TIMER_TIME, 0));
+                    break;
+
+                case NONE_TIMER_ISRUNNING:
+                    Log.i("SharedPreferences", "None timer is running !");
+                    break;
+            }
+        }
 
         // Catch the TimerPlan which is sent as Parcelable via intent
         Intent intent = getIntent();
@@ -272,8 +316,34 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
-        handler = null;
+
+        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        if (mainStopWatch.isRunning()) {
+            editor.putInt(TYPE_OF_TIMER, STOPWATCH_ISRUNNING);
+            editor.putLong(SAVED_MAIN_STOPWATCH_TIME, mainStopWatch.getElapsedTime());
+            editor.putLong(SAVED_SPLIT_STOPWATCH_TIME, splitStopWatch.getElapsedTime());
+        }
+
+        if (timer.isRunning()) {
+            editor.putInt(TYPE_OF_TIMER, TIMER_ISRUNNING);
+            editor.putLong(SAVED_TIMER_TIME, timer.getElapsedTime());
+        }
+        editor.commit();
     }
+
+    /*@Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STOPWATCH_ISRUNNING, mainStopWatch.isRunning());
+        outState.putBoolean(TIMER_ISRUNNING, timer.isRunning());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+    }*/
 
     // TODO: Reconsider the layout for better performance (redundant removing and adding view here)
     private View initLayout(LayoutInflater inflater) {
@@ -421,16 +491,19 @@ public class MainActivity extends AppCompatActivity
 
     // Listener for the StartStop Button
     private void startStop() {
-        startStopButton = (ToggleButton) contentView.findViewById(R.id.button_startStop);
+        startStopButton = (Button) contentView.findViewById(R.id.button_startStop);
         //Create a reference to a listener to be sure that listener exist as long as activity does
-        CompoundButton.OnCheckedChangeListener listener = new CompoundButton.OnCheckedChangeListener() {
+        View.OnClickListener listener = new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
+            public void onClick(View v) {
+                if ((!mainStopWatch.isRunning() && !timer.isRunning())
+                        || mainStopWatch.isStopped() || timer.isStopped()) {
                     start();
                     startStopButton.setTextColor(Color.parseColor("#cc0000"));
-                    if (timerPlan == null && (mainStopWatch.isRunning() || textView_timeDisplay.getText()
-                            .equals(getResources().getString(R.string.textView_default_time))))
+                    startStopButton.setText(R.string.Stop);
+                    if (timerPlan == null && (mainStopWatch.isRunning() ||
+                            textView_timeDisplay.getText().equals(getResources().getString(
+                                    R.string.textView_default_time))))
                         lapReset.setText(R.string.Lap);
                     else {
                         lapReset.setEnabled(false);
@@ -439,12 +512,14 @@ public class MainActivity extends AppCompatActivity
                     if (mainStopWatch.isRunning() || timer.isRunning())
                         stop();
                     startStopButton.setTextColor(Color.parseColor("#99cc00"));
+                    startStopButton.setText(R.string.Start);
                     lapReset.setEnabled(true);
                     lapReset.setText(R.string.Reset);
                 }
             }
         };
-        startStopButton.setOnCheckedChangeListener(listener);
+
+        startStopButton.setOnClickListener(listener);
     }
 
     // Listener for the lapReset Button

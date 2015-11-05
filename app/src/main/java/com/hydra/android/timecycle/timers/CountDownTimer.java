@@ -77,6 +77,14 @@ public class CountDownTimer {
         this.startTime = System.currentTimeMillis();
     }
 
+    public long getElapsedTime() {
+        long elapsedTime = 0;
+        if (isRunning) {
+            elapsedTime = ((startTime - System.currentTimeMillis()));
+        }
+        return elapsedTime;
+    }
+
     // Returns time in milliseconds
     public long getElapsedTimeMilli() {
         long elapsedMillis = 0;
