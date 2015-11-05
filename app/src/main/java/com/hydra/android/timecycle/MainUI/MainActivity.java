@@ -84,6 +84,8 @@ public class MainActivity extends AppCompatActivity
     private final static int MSG_STOP_COUNTDOWN = 8;
     private final static int MSG_PAUSE_COUNTDOWN = 9;
     private final static int MSG_UPDATE_COUNTDOWN = 10;
+    private final static int MSG_RESUME_STOPWATCH = 11;
+
 
     // Helper timer classes
     private StopWatch mainStopWatch = new StopWatch("main");
@@ -95,30 +97,43 @@ public class MainActivity extends AppCompatActivity
     private int timerType;
 
     // Saving activity state during re-orientation
+    private SharedPreferences sharedPrefs;
     private final static String TYPE_OF_TIMER = "typeOfTimer";
-    private final static int STOPWATCH_ISRUNNING = 0;
-    private final static int TIMER_ISRUNNING = 1;
-    private final static int NONE_TIMER_ISRUNNING = -1;
+    private final static int STOPWATCH_IS_RUNNING = 0;
+    private final static int TIMER_IS_RUNNING = 1;
+    private final static int NONE_TIMER_IS_RUNNING = -1;
     private final static String SAVED_MAIN_STOPWATCH_TIME = "savedTimeMainStopWatch";
     private final static String SAVED_SPLIT_STOPWATCH_TIME = "savedTimeSplitStopWatch";
     private final static String SAVED_TIMER_TIME = "savedTimeTimer";
     private boolean isStopWatchRunning;
     private boolean isTimerRunning;
 
+
     // Handler refreshes UI with the stopwatch time by the given UI_REFRESH_RATE
     // made it static to prevent memory leaks
     private static class TimerHander extends Handler {
 
         private WeakReference<MainActivity> mTarget;
+        private long milliTimer;
+        private long secTimer;
+        private long minTimer;
+        private long hourTimer;
+        private long milliMainStopWatch;
+        private long secMainStopWatch;
+        private long minMainStopWatch;
+        private long hourMainStopWatch;
+        private long milliSplitStopWatch;
+        private long secSplitStopWatch;
+        private long minSplitStopWatch;
+        private long hourSplitStopWatch;
 
         TimerHander(MainActivity target) {
-            mTarget = new WeakReference<MainActivity>(target);
+            mTarget = new WeakReference<>(target);
         }
 
         public void setTarget(MainActivity target) {
-            mTarget = new WeakReference<MainActivity>(target);
+            mTarget = new WeakReference<>(target);
         }
-
 
         @Override
         public void handleMessage(Message msg) {
@@ -127,25 +142,19 @@ public class MainActivity extends AppCompatActivity
             if (mActivity != null) {
                 super.handleMessage(msg);
 
-                long milliTimer = mActivity.timer.getElapsedTimeMilli();
-                long secTimer = mActivity.timer.getElapsedTimeSecs();
-                long minTimer = mActivity.timer.getElapsedTimeMinutes();
-                long hourTimer = mActivity.timer.getElapsedTimeHours();
-
-                long milliMainStopWatch = mActivity.mainStopWatch.getElapsedTimeMilli();
-                long secMainStopWatch = mActivity.mainStopWatch.getElapsedTimeSecs();
-                long minMainStopWatch = mActivity.mainStopWatch.getElapsedTimeMinutes();
-                long hourMainStopWatch = mActivity.mainStopWatch.getElapsedTimeHours();
-
-                long milliSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeMilli();
-                long secSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeSecs();
-                long minSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeMinutes();
-                long hourSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeHours();
+                getTimes(mActivity);
 
                 switch (msg.what) {
                     case MainActivity.MSG_START_STOPWATCH:
                         mActivity.mainStopWatch.start();
                         mActivity.splitStopWatch.start();
+                        mActivity.handler.sendEmptyMessage(MSG_UPDATE_STOPWATCH);
+                        break;
+                    case MainActivity.MSG_RESUME_STOPWATCH:
+                        mActivity.mainStopWatch.resume(mActivity.sharedPrefs
+                                .getLong(SAVED_MAIN_STOPWATCH_TIME, 0));
+                        mActivity.splitStopWatch.resume(mActivity.sharedPrefs
+                                .getLong(SAVED_SPLIT_STOPWATCH_TIME, 0));
                         mActivity.handler.sendEmptyMessage(MSG_UPDATE_STOPWATCH);
                         break;
                     case MSG_STOP_STOPWATCH:
@@ -179,7 +188,6 @@ public class MainActivity extends AppCompatActivity
                         mActivity.background.pauseAnimaton();
                         mActivity.timer.pause();
                         break;
-
                     case MSG_STOP_TIMER:
                         mActivity.handler.removeMessages(MSG_UPDATE_TIMER);
                         mActivity.reset();
@@ -187,7 +195,6 @@ public class MainActivity extends AppCompatActivity
                         mActivity.startStopButton.setText(R.string.Start);
                         mActivity.lapReset.setEnabled(true);
                         break;
-
                     case MSG_UPDATE_TIMER:
                         if (!mActivity.isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
                             mActivity.displayTime(TimeFormatter.formatTimeToString(
@@ -212,7 +219,6 @@ public class MainActivity extends AppCompatActivity
                             }
                         }
                         break;
-
                     case MSG_START_COUNTDOWN:
                         if (!mActivity.timer.isStopped()) {
                             mActivity.timer.setTime(mActivity.hmsTime[0], mActivity.hmsTime[1],
@@ -226,18 +232,15 @@ public class MainActivity extends AppCompatActivity
                         mActivity.background.resumeAnimation();
                         mActivity.handler.sendEmptyMessage(MSG_UPDATE_COUNTDOWN);
                         break;
-
                     case MSG_STOP_COUNTDOWN:
                         mActivity.handler.removeMessages(MSG_UPDATE_COUNTDOWN);
                         mActivity.reset();
                         break;
-
                     case MSG_PAUSE_COUNTDOWN:
                         mActivity.handler.removeMessages(MSG_UPDATE_COUNTDOWN);
                         mActivity.background.pauseAnimaton();
                         mActivity.timer.pause();
                         break;
-
                     case MSG_UPDATE_COUNTDOWN:
                         if (!mActivity.isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
                             mActivity.displayCountdownTime(TimeFormatter.formatTimeToString(
@@ -253,6 +256,23 @@ public class MainActivity extends AppCompatActivity
                         break;
                 }
             }
+        }
+
+        private void getTimes(MainActivity mActivity) {
+            milliTimer = mActivity.timer.getElapsedTimeMilli();
+            secTimer = mActivity.timer.getElapsedTimeSecs();
+            minTimer = mActivity.timer.getElapsedTimeMinutes();
+            hourTimer = mActivity.timer.getElapsedTimeHours();
+
+            milliMainStopWatch = mActivity.mainStopWatch.getElapsedTimeMilli();
+            secMainStopWatch = mActivity.mainStopWatch.getElapsedTimeSecs();
+            minMainStopWatch = mActivity.mainStopWatch.getElapsedTimeMinutes();
+            hourMainStopWatch = mActivity.mainStopWatch.getElapsedTimeHours();
+
+            milliSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeMilli();
+            secSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeSecs();
+            minSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeMinutes();
+            hourSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeHours();
         }
     }
 
@@ -274,25 +294,27 @@ public class MainActivity extends AppCompatActivity
         else
             handler.setTarget(this);
 
-        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
-        if (sharedPreferences != null) {
-            switch (sharedPreferences.getInt(TYPE_OF_TIMER, NONE_TIMER_ISRUNNING)) {
-                case STOPWATCH_ISRUNNING:
-                    Log.i("Test", "Main StopWatch saved time: "
-                            + sharedPreferences.getLong(SAVED_MAIN_STOPWATCH_TIME, 0));
-                    Log.i("Test", "Split StopWatch saved time: "
-                            + sharedPreferences.getLong(SAVED_SPLIT_STOPWATCH_TIME, 0));
-                    break;
-                case TIMER_ISRUNNING:
-                    Log.i("Test", "Timer saved time: "
-                            + sharedPreferences.getLong(SAVED_TIMER_TIME, 0));
-                    break;
+        if (sharedPrefs == null)
+            sharedPrefs = getPreferences(Context.MODE_PRIVATE);
 
-                case NONE_TIMER_ISRUNNING:
-                    Log.i("SharedPreferences", "None timer is running !");
-                    break;
-            }
+        switch (sharedPrefs.getInt(TYPE_OF_TIMER, NONE_TIMER_IS_RUNNING)) {
+            case STOPWATCH_IS_RUNNING:
+                Log.i("Test", "Main StopWatch saved time: "
+                        + sharedPrefs.getLong(SAVED_MAIN_STOPWATCH_TIME, 0));
+                Log.i("Test", "Split StopWatch saved time: "
+                        + sharedPrefs.getLong(SAVED_SPLIT_STOPWATCH_TIME, 0));
+                handler.sendEmptyMessage(MSG_RESUME_STOPWATCH);
+                break;
+            case TIMER_IS_RUNNING:
+                Log.i("Test", "Timer saved time: "
+                        + sharedPrefs.getLong(SAVED_TIMER_TIME, 0));
+                break;
+
+            case NONE_TIMER_IS_RUNNING:
+                Log.i("SharedPreferences", "None timer is running !");
+                break;
         }
+
 
         // Catch the TimerPlan which is sent as Parcelable via intent
         Intent intent = getIntent();
@@ -317,16 +339,17 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
 
-        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        if (sharedPrefs == null)
+            sharedPrefs = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
         if (mainStopWatch.isRunning()) {
-            editor.putInt(TYPE_OF_TIMER, STOPWATCH_ISRUNNING);
-            editor.putLong(SAVED_MAIN_STOPWATCH_TIME, mainStopWatch.getElapsedTime());
-            editor.putLong(SAVED_SPLIT_STOPWATCH_TIME, splitStopWatch.getElapsedTime());
+            editor.putInt(TYPE_OF_TIMER, STOPWATCH_IS_RUNNING);
+            editor.putLong(SAVED_MAIN_STOPWATCH_TIME, mainStopWatch.getStartTime());
+            editor.putLong(SAVED_SPLIT_STOPWATCH_TIME, splitStopWatch.getStartTime());
         }
 
         if (timer.isRunning()) {
-            editor.putInt(TYPE_OF_TIMER, TIMER_ISRUNNING);
+            editor.putInt(TYPE_OF_TIMER, TIMER_IS_RUNNING);
             editor.putLong(SAVED_TIMER_TIME, timer.getElapsedTime());
         }
         editor.commit();
@@ -335,8 +358,8 @@ public class MainActivity extends AppCompatActivity
     /*@Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(STOPWATCH_ISRUNNING, mainStopWatch.isRunning());
-        outState.putBoolean(TIMER_ISRUNNING, timer.isRunning());
+        outState.putBoolean(STOPWATCH_IS_RUNNING, mainStopWatch.isRunning());
+        outState.putBoolean(TIMER_IS_RUNNING, timer.isRunning());
     }
 
     @Override
@@ -597,6 +620,12 @@ public class MainActivity extends AppCompatActivity
         background.setBackgroundColor(Color.argb(255, 250, 250, 250));
         background.invalidate();
         mLapTimes.clear();
+
+        if (sharedPrefs == null)
+            sharedPrefs = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putInt(TYPE_OF_TIMER, NONE_TIMER_IS_RUNNING);
+        editor.commit();
     }
 
     public void setTimerTime(long time) {

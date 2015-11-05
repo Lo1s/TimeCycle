@@ -47,14 +47,13 @@
                 android:layout_below="@id/textView_timeDisplay"
                 >
 
-                <ToggleButton
+                <Button
                     android:id="@+id/button_startStop"
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:textOn="Stop"
-                    android:textOff="Start"
                     android:layout_marginRight="40dp"
                     android:textAllCaps="false"
+                    android:text="@string/Start"
                     android:textColor="@android:color/holo_green_light"
                     android:background="@drawable/round_button"
                     android:gravity="center"/>
