@@ -18,11 +18,6 @@ public class StopWatch {
         this.type = type;
     }
 
-    public StopWatch(long startTime, long endTime) {
-        this.startTime = startTime;
-        this.elapsedTime = endTime;
-    }
-
     public void start() {
         Log.i(TAG, type + " started");
         if (!isStopped)
@@ -30,6 +25,13 @@ public class StopWatch {
         else {
             this.startTime = System.currentTimeMillis() - elapsedTime;
         }
+        this.isRunning = true;
+        this.isStopped = false;
+    }
+
+    public void resume(long startTime) {
+        Log.i(TAG, type + " resumed");
+        this.startTime = startTime;
         this.isRunning = true;
         this.isStopped = false;
     }
@@ -62,12 +64,8 @@ public class StopWatch {
         this.startTime = System.currentTimeMillis();
     }
 
-    public long getElapsedTime() {
-        long elapsed = 0;
-        if (isRunning) {
-            elapsed = ((System.currentTimeMillis() - startTime));
-        }
-        return elapsed;
+    public long getStartTime() {
+        return startTime;
     }
 
     // Returns time in milliseconds
