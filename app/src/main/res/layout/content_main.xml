@@ -71,7 +71,7 @@
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:layout_toRightOf="@id/button_startStop"
-                    android:text="@string/Lap"
+                    android:text="@string/Reset"
                     android:textAllCaps="false"
                     android:background="@drawable/round_button"
                     android:gravity="center"/>

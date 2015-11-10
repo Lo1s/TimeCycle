@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity
     private final static int MSG_PAUSE_COUNTDOWN = 9;
     private final static int MSG_UPDATE_COUNTDOWN = 10;
     private final static int MSG_RESUME_STOPWATCH = 11;
+    private final static int MSG_RESUME_TIMER = 12;
 
 
     // Helper timer classes
@@ -156,6 +157,7 @@ public class MainActivity extends AppCompatActivity
                         mActivity.splitStopWatch.resume(mActivity.sharedPrefs
                                 .getLong(SAVED_SPLIT_STOPWATCH_TIME, 0));
                         mActivity.handler.sendEmptyMessage(MSG_UPDATE_STOPWATCH);
+                        mActivity.setUpStartButton();
                         break;
                     case MSG_STOP_STOPWATCH:
                         mActivity.handler.removeMessages(MSG_UPDATE_STOPWATCH);
@@ -182,6 +184,13 @@ public class MainActivity extends AppCompatActivity
                         mActivity.timer.start();
                         mActivity.background.resumeAnimation();
                         mActivity.handler.sendEmptyMessage(MSG_UPDATE_TIMER);
+                        break;
+                    case MSG_RESUME_TIMER:
+                        mActivity.timer.resume(mActivity.sharedPrefs.getLong(SAVED_TIMER_TIME, 0));
+                        sendEmptyMessage(MSG_UPDATE_TIMER);
+                        // Clear the timer display (not to mark the lapReset button as "lap")
+                        mActivity.displayTime("");
+                        mActivity.setUpStartButton();
                         break;
                     case MSG_PAUSE_TIMER:
                         mActivity.handler.removeMessages(MSG_UPDATE_TIMER);
@@ -299,22 +308,15 @@ public class MainActivity extends AppCompatActivity
 
         switch (sharedPrefs.getInt(TYPE_OF_TIMER, NONE_TIMER_IS_RUNNING)) {
             case STOPWATCH_IS_RUNNING:
-                Log.i("Test", "Main StopWatch saved time: "
-                        + sharedPrefs.getLong(SAVED_MAIN_STOPWATCH_TIME, 0));
-                Log.i("Test", "Split StopWatch saved time: "
-                        + sharedPrefs.getLong(SAVED_SPLIT_STOPWATCH_TIME, 0));
                 handler.sendEmptyMessage(MSG_RESUME_STOPWATCH);
                 break;
             case TIMER_IS_RUNNING:
-                Log.i("Test", "Timer saved time: "
-                        + sharedPrefs.getLong(SAVED_TIMER_TIME, 0));
+                handler.sendEmptyMessage(MSG_RESUME_TIMER);
                 break;
-
             case NONE_TIMER_IS_RUNNING:
                 Log.i("SharedPreferences", "None timer is running !");
                 break;
         }
-
 
         // Catch the TimerPlan which is sent as Parcelable via intent
         Intent intent = getIntent();
@@ -350,23 +352,10 @@ public class MainActivity extends AppCompatActivity
 
         if (timer.isRunning()) {
             editor.putInt(TYPE_OF_TIMER, TIMER_IS_RUNNING);
-            editor.putLong(SAVED_TIMER_TIME, timer.getElapsedTime());
+            editor.putLong(SAVED_TIMER_TIME, timer.getStartTime());
         }
         editor.commit();
     }
-
-    /*@Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(STOPWATCH_IS_RUNNING, mainStopWatch.isRunning());
-        outState.putBoolean(TIMER_IS_RUNNING, timer.isRunning());
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-    }*/
 
     // TODO: Reconsider the layout for better performance (redundant removing and adding view here)
     private View initLayout(LayoutInflater inflater) {
@@ -522,27 +511,36 @@ public class MainActivity extends AppCompatActivity
                 if ((!mainStopWatch.isRunning() && !timer.isRunning())
                         || mainStopWatch.isStopped() || timer.isStopped()) {
                     start();
-                    startStopButton.setTextColor(Color.parseColor("#cc0000"));
-                    startStopButton.setText(R.string.Stop);
-                    if (timerPlan == null && (mainStopWatch.isRunning() ||
-                            textView_timeDisplay.getText().equals(getResources().getString(
-                                    R.string.textView_default_time))))
-                        lapReset.setText(R.string.Lap);
-                    else {
-                        lapReset.setEnabled(false);
-                    }
+                    setUpStartButton();
                 } else {
                     if (mainStopWatch.isRunning() || timer.isRunning())
                         stop();
-                    startStopButton.setTextColor(Color.parseColor("#99cc00"));
-                    startStopButton.setText(R.string.Start);
-                    lapReset.setEnabled(true);
-                    lapReset.setText(R.string.Reset);
+                    setUpStopButton();
                 }
             }
         };
 
         startStopButton.setOnClickListener(listener);
+    }
+
+    private void setUpStartButton() {
+        startStopButton.setTextColor(Color.parseColor("#cc0000"));
+        startStopButton.setText(R.string.Stop);
+        if (timerPlan == null && (mainStopWatch.isRunning() ||
+                textView_timeDisplay.getText().equals(getResources().getString(
+                        R.string.textView_default_time))))
+            lapReset.setText(R.string.Lap);
+        else {
+            lapReset.setEnabled(false);
+            lapReset.setText(R.string.Reset);
+        }
+    }
+
+    private void setUpStopButton() {
+        startStopButton.setTextColor(Color.parseColor("#99cc00"));
+        startStopButton.setText(R.string.Start);
+        lapReset.setEnabled(true);
+        lapReset.setText(R.string.Reset);
     }
 
     // Listener for the lapReset Button
@@ -591,6 +589,12 @@ public class MainActivity extends AppCompatActivity
         } else if (timer.isRunning() && !mainStopWatch.isRunning()) {
             handler.sendEmptyMessage(MSG_PAUSE_TIMER);
         }
+
+        if (sharedPrefs == null)
+            sharedPrefs = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putInt(TYPE_OF_TIMER, NONE_TIMER_IS_RUNNING);
+        editor.commit();
     }
 
     // Laps the time

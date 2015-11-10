@@ -44,6 +44,13 @@ public class CountDownTimer {
         this.isStopped = false;
     }
 
+    public void resume(long startTime) {
+        Log.i(TAG, "resumed");
+        this.startTime = startTime;
+        this.isRunning = true;
+        this.isStopped = false;
+    }
+
     public void stop() {
         Log.i(TAG, "stopped");
         resetTime();
@@ -75,6 +82,10 @@ public class CountDownTimer {
     public void split() {
         Log.i(TAG, "splitted");
         this.startTime = System.currentTimeMillis();
+    }
+
+    public long getStartTime() {
+        return this.startTime;
     }
 
     public long getElapsedTime() {
