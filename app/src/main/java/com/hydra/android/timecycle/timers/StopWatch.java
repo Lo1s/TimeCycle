@@ -4,7 +4,7 @@ import android.util.Log;
 
 public class StopWatch {
     private long startTime = 0;
-    private long elapsedTime = 0;
+    private long pausedTime = 0;
     private boolean isRunning = false;
     private boolean isStopped = false;
     private String type = "";
@@ -23,7 +23,7 @@ public class StopWatch {
         if (!isStopped)
             this.startTime = System.currentTimeMillis();
         else {
-            this.startTime = System.currentTimeMillis() - elapsedTime;
+            this.startTime = System.currentTimeMillis() - pausedTime;
         }
         this.isRunning = true;
         this.isStopped = false;
@@ -38,7 +38,7 @@ public class StopWatch {
 
     public void stop() {
         Log.i(TAG, type + " stopped");
-        this.elapsedTime = System.currentTimeMillis() - startTime;
+        this.pausedTime = System.currentTimeMillis() - startTime;
         this.isRunning = true;
         this.isStopped = true;
     }
@@ -54,7 +54,7 @@ public class StopWatch {
     public void resetTime() {
         Log.i(TAG, type + " reseted");
         this.startTime = 0;
-        this.elapsedTime = 0;
+        this.pausedTime = 0;
         isStopped = false;
         isRunning = false;
     }
@@ -64,8 +64,28 @@ public class StopWatch {
         this.startTime = System.currentTimeMillis();
     }
 
+    public void setTime(long time) {
+
+    }
+
+    public void setPausedTime(long time) {
+        this.pausedTime = time;
+    }
+
+    public void setStopped(boolean isStopped) {
+        this.isStopped = isStopped;
+    }
+
+    public void setRunning(boolean isRunning) {
+        this.isRunning = isRunning;
+    }
+
     public long getStartTime() {
         return startTime;
+    }
+
+    public long getPausedTime() {
+        return this.pausedTime;
     }
 
     // Returns time in milliseconds

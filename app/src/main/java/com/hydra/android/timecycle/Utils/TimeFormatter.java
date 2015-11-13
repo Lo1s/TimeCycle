@@ -15,8 +15,10 @@ public class TimeFormatter {
         int timerHour = (int)(time / 60 / 60 / 1000);
         int timerMinute = (int)(time / 60 / 1000 - (timerHour * 60));
         int timerSecond = (int)(time / 1000 - (timerMinute * 60) - (timerHour * 60 * 60));
+        int timerMillis = (int)(time - (timerSecond * 1000) - (timerMinute * 60 * 1000)
+                - (timerHour * 60 * 60 * 1000)) / 100;
 
-        return new int[] {timerHour, timerMinute, timerSecond};
+        return new int[] {timerHour, timerMinute, timerSecond, timerMillis};
     }
 
     /** Returns string representation of the time in format "HH:MM:SS,MS" */
@@ -36,7 +38,6 @@ public class TimeFormatter {
         } else {
             secondString = "" + seconds;
         }
-
 
         builder.append(hours + ":");
         builder.append(minuteString + ":");
@@ -99,12 +100,17 @@ public class TimeFormatter {
     }
 
     /** Returns string representation of the time in format "SS" */
-    public static String formatTimeToString(long seconds) {
+    public static String formatTimeToString(int seconds) {
         StringBuilder builder = new StringBuilder();
         String secondString;
         secondString = "" + seconds;
         builder.append(secondString + "");
 
         return builder.toString();
+    }
+
+    public static String formatTimeToString(long timeInMillis) {
+        int[] temp = millisToHms(timeInMillis);
+        return formatTimeToString(temp[0], temp[1], temp[2], temp[3]);
     }
 }

@@ -24,7 +24,7 @@
             android:layout_centerInParent="true">
 
             <TextView
-                android:id="@+id/textView_splitTime"
+                android:id="@+id/textView_secondaryTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/textView_default_time"

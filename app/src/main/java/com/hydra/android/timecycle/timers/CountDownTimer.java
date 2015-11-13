@@ -8,9 +8,10 @@ import android.util.Log;
 public class CountDownTimer {
     private long startTime = 0;
     private long endTime = 0;
+    private long duration = 0;
     private boolean isRunning = false;
     private boolean isStopped = false;
-    private long elapsedTime = 0;
+    private long pausedTime = 0;
     private long hour;
     private long minute;
     private long second;
@@ -25,12 +26,6 @@ public class CountDownTimer {
         this.endTime = endTime;
     }
 
-    public void setTime(long hour, long minute, long second) {
-        this.hour = hour * 60 * 60 * 1000;
-        this.minute = minute * 60 * 1000;
-        this.second = second * 1000;
-    }
-
     public void start() {
         Log.i(TAG, "started");
         // Convert to millis
@@ -38,7 +33,7 @@ public class CountDownTimer {
             this.startTime = System.currentTimeMillis() + hour + minute + second;
             this.endTime = System.currentTimeMillis();
         } else {
-            this.startTime = System.currentTimeMillis() + elapsedTime;
+            this.startTime = System.currentTimeMillis() + pausedTime;
         }
         this.isRunning = true;
         this.isStopped = false;
@@ -58,7 +53,7 @@ public class CountDownTimer {
 
     public void pause() {
         Log.i(TAG, "paused");
-        this.elapsedTime = startTime - System.currentTimeMillis();
+        this.pausedTime = startTime - System.currentTimeMillis();
         this.isRunning = true;
         this.isStopped = true;
     }
@@ -84,8 +79,49 @@ public class CountDownTimer {
         this.startTime = System.currentTimeMillis();
     }
 
+    public void setTime(long hour, long minute, long second) {
+        this.hour = hour * 60 * 60 * 1000;
+        this.minute = minute * 60 * 1000;
+        this.second = second * 1000;
+        setDuration(this.hour, this.minute, this.second);
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setRunning(boolean isRunning) {
+        this.isRunning = isRunning;
+    }
+
+    public void setDuration(long hoursInMillis, long minutesInMillis, long secondsInMillis) {
+        duration = hoursInMillis + minutesInMillis + secondsInMillis;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public float getProgress() {
+        float progress = 0;
+        if (!isStopped()) {
+            progress = (float) (duration - getElapsedTime()) / (float) duration;
+        } else {
+            progress = (float) (duration - pausedTime) / (float) duration;
+        }
+        return progress;
+    }
+
     public long getStartTime() {
         return this.startTime;
+    }
+
+    public long getPausedTime() {
+        return this.pausedTime;
     }
 
     public long getElapsedTime() {
@@ -128,7 +164,7 @@ public class CountDownTimer {
         long elapsedHours = 0;
         if (isRunning) {
             // TODO: Check the mod 24 if working
-            elapsedHours = ((((startTime - System.currentTimeMillis())  / 1000) / 60) / 60) % 24;
+            elapsedHours = ((((startTime - System.currentTimeMillis()) / 1000) / 60) / 60) % 24;
         }
         return elapsedHours;
     }
