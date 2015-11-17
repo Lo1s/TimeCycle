@@ -43,14 +43,6 @@ public class StopWatch {
         this.isStopped = true;
     }
 
-    public boolean isStopped() {
-        return isStopped;
-    }
-
-    public boolean isRunning() {
-        return isRunning;
-    }
-
     public void resetTime() {
         Log.i(TAG, type + " reseted");
         this.startTime = 0;
@@ -64,20 +56,24 @@ public class StopWatch {
         this.startTime = System.currentTimeMillis();
     }
 
-    public void setTime(long time) {
-
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
     }
 
     public void setPausedTime(long time) {
         this.pausedTime = time;
     }
 
+    public void setRunning(boolean isRunning) {
+        this.isRunning = isRunning;
+    }
+
     public void setStopped(boolean isStopped) {
         this.isStopped = isStopped;
     }
 
-    public void setRunning(boolean isRunning) {
-        this.isRunning = isRunning;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public long getStartTime() {
@@ -86,6 +82,18 @@ public class StopWatch {
 
     public long getPausedTime() {
         return this.pausedTime;
+    }
+
+    public boolean isRunning() {
+        return this.isRunning;
+    }
+
+    public boolean isStopped() {
+        return this.isStopped;
+    }
+
+    public String getType() {
+        return this.type;
     }
 
     // Returns time in milliseconds
@@ -124,5 +132,6 @@ public class StopWatch {
         }
         return elapsedHours;
     }
+
 
 }
