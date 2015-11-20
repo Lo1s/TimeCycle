@@ -16,8 +16,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -33,8 +31,10 @@ import com.hydra.android.timecycle.timerplan.TimerPlan;
 import com.hydra.android.timecycle.timers.CountDownTimer;
 import com.hydra.android.timecycle.timers.StopWatch;
 import com.hydra.android.timecycle.utils.MyConstants;
+import com.hydra.android.timecycle.utils.ObjectSerializer;
 import com.hydra.android.timecycle.utils.TimeFormatter;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity
     private StopWatch splitStopWatch = new StopWatch("split");
     private CountDownTimer timer = new CountDownTimer();
 
-    private ArrayList<String> mLapTimes;
+    private ArrayList<String[]> mLapTimes;
     private TimerPlan timerPlan;
     private int timerType;
 
@@ -217,7 +217,9 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        /** Handler helper methods for controlling the timers */
+        /**
+         * Handler helper methods for controlling the timers
+         */
 
         private void getTimes(MainActivity mActivity) {
             milliTimer = mActivity.timer.getElapsedTimeMilli();
@@ -304,7 +306,7 @@ public class MainActivity extends AppCompatActivity
             mActivity.timer.resume(
                     mActivity.sharedPrefs.getLong(SAVED_TIMER_START_TIME, 0));
             mActivity.background.resumeAnimation(mActivity.timer.getProgress());
-            // Clear the timer display (in order to not mark the lapReset button as "lap")
+            // Clear the timer display (in order to not mark the lapResetButtons button as "lap")
             mActivity.displayTime("");
             mActivity.setUpStartButton();
         }
@@ -344,6 +346,8 @@ public class MainActivity extends AppCompatActivity
             if (!mActivity.isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
                 mActivity.displayTime(TimeFormatter.formatTimeToString(
                         hourTimer, minTimer, secTimer, milliTimer));
+                mActivity.displaySecondaryTime(
+                        String.format("%3d%s", (int)(mActivity.timer.getProgress() * 100), "%"));
                 sendEmptyMessageDelayed(MSG_UPDATE_TIMER,
                         UI_REFRESH_RATE);
                 Log.i("Progress", mActivity.timer.getProgress() + "");
@@ -392,7 +396,7 @@ public class MainActivity extends AppCompatActivity
         private void updateCountDown(MainActivity mActivity) {
             if (!mActivity.isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
                 mActivity.displayCountdownTime(TimeFormatter.formatTimeToString(
-                        (int)secTimer));
+                        (int) secTimer));
                 sendEmptyMessageDelayed(MSG_UPDATE_COUNTDOWN,
                         UI_REFRESH_RATE);
             } else {
@@ -427,6 +431,13 @@ public class MainActivity extends AppCompatActivity
 
         switch (sharedPrefs.getInt(TYPE_OF_TIMER, NONE_TIMER_IS_RUNNING)) {
             case STOPWATCH_IS_RUNNING:
+                try {
+                    mLapTimes = (ArrayList<String[]>)
+                            ObjectSerializer.deserialize(sharedPrefs.getString("TEST",
+                                    ObjectSerializer.serialize(new ArrayList<String[]>())));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
                 if (sharedPrefs.getBoolean(SAVED_STOPWATCH_IS_STOPPED, false))
                     handler.sendEmptyMessage(MSG_RESUME_PAUSED_STOPWATCH);
                 else
@@ -468,6 +479,13 @@ public class MainActivity extends AppCompatActivity
             Log.i("TimerPlan", "Intensity: " + timerPlan.getIntensity());
             runTimerPlan(timerPlan, timerType);
         }
+
+        // Sets up recycler view for lap history
+        if (mLapTimes == null) {
+            mLapTimes = new ArrayList<>();
+        }
+        if (timerType != MyConstants.COUNTDOWN_TIME)
+            setUpRecyclerView();
     }
 
     @Override
@@ -480,13 +498,14 @@ public class MainActivity extends AppCompatActivity
 
         if (mainStopWatch.isRunning()) {
             saveStopWatchState(editor);
-            handler.sendEmptyMessage(MSG_STOP_STOPWATCH);
+            mainStopWatch.stop();
+            splitStopWatch.stop();
             handler.removeMessages(MSG_UPDATE_STOPWATCH);
         }
 
         if (timer.isRunning()) {
             saveTimerState(editor);
-            handler.sendEmptyMessage(MSG_PAUSE_TIMER);
+            timer.stop();
             handler.removeMessages(MSG_UPDATE_TIMER);
         }
 
@@ -506,6 +525,11 @@ public class MainActivity extends AppCompatActivity
         editor.putLong(SAVED_SPLIT_STOPWATCH_TIME, splitStopWatch.getStartTime());
         editor.putLong(SAVED_SPLIT_STOPWATCH_ELAPSED_TIME, splitStopWatch.getPausedTime());
         editor.putBoolean(SAVED_STOPWATCH_IS_STOPPED, mainStopWatch.isStopped());
+        try {
+            editor.putString("TEST", ObjectSerializer.serialize(mLapTimes));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
         editor.commit();
     }
 
@@ -546,13 +570,12 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        // Initialize UI
-        setUpTimers();
-        startStop();
-        lapReset();
-
-        // Sets up recycler view for lap history
         setUpRecyclerView();
+
+        // Initialize UI
+        setUpTimerTextViews();
+        startStopButtons();
+        lapResetButtons();
 
         frameLayout.removeAllViews();
         frameLayout.addView(background);
@@ -611,13 +634,12 @@ public class MainActivity extends AppCompatActivity
         recyclerView_lapTimes.setHasFixedSize(true);
         rVlayoutManager = new LinearLayoutManager(this);
         recyclerView_lapTimes.setLayoutManager(rVlayoutManager);
-        mLapTimes = new ArrayList<>();
         rVadapter = new LapTimesAdapter(mLapTimes);
         recyclerView_lapTimes.setAdapter(rVadapter);
     }
 
     // Create textViews for Timers and register listener for the main one
-    private void setUpTimers() {
+    private void setUpTimerTextViews() {
         textView_timeDisplay = (TextView) contentView.findViewById(R.id.textView_timeDisplay);
         textView_secondaryTimeDisplay = (TextView) contentView.findViewById(R.id.textView_secondaryTime);
 
@@ -641,30 +663,8 @@ public class MainActivity extends AppCompatActivity
         setTimerTime(time);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     // Listener for the StartStop Button
-    private void startStop() {
+    private void startStopButtons() {
         startStopButton = (Button) contentView.findViewById(R.id.button_startStop);
         //Create a reference to a listener to be sure that listener exist as long as activity does
         View.OnClickListener listener = new View.OnClickListener() {
@@ -705,8 +705,8 @@ public class MainActivity extends AppCompatActivity
         lapReset.setText(R.string.Reset);
     }
 
-    // Listener for the lapReset Button
-    private void lapReset() {
+    // Listener for the lapResetButtons Button
+    private void lapResetButtons() {
         lapReset = (Button) contentView.findViewById(R.id.button_lapReset);
         //Create a reference to a listener to be sure that listener exist as long as activity does
         View.OnClickListener listener = new View.OnClickListener() {
@@ -766,12 +766,16 @@ public class MainActivity extends AppCompatActivity
     private void lap() {
         if (mainStopWatch.isRunning()) {
             splitStopWatch.split();
-            mLapTimes.add(TimeFormatter.formatTimeToString(
-                    mainStopWatch.getElapsedTimeHours(),
-                    mainStopWatch.getElapsedTimeMinutes(),
-                    mainStopWatch.getElapsedTimeSecs(),
-                    mainStopWatch.getElapsedTimeMilli()));
+            // TODO: Move the string literal to the resources for translation
+            mLapTimes.add(new String[]{
+                    "Lap " + String.format("%2s", (mLapTimes.size() + 1)) + ":",
+                    TimeFormatter.formatTimeToString(
+                            mainStopWatch.getElapsedTimeHours(),
+                            mainStopWatch.getElapsedTimeMinutes(),
+                            mainStopWatch.getElapsedTimeSecs(),
+                            mainStopWatch.getElapsedTimeMilli())});
             rVadapter.notifyDataSetChanged();
+            Log.i("Lap times", mLapTimes.get(mLapTimes.size() - 1)[0] + ", " + mLapTimes.get(mLapTimes.size() - 1)[1]);
         }
     }
 

@@ -15,34 +15,37 @@ import java.util.ArrayList;
  */
 public class LapTimesAdapter extends RecyclerView.Adapter<LapTimesAdapter.ViewHolder> {
 
-    ArrayList<String> mLapTimes;
+    ArrayList<String[]> mLapTimes;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView mTextView;
-        public ViewHolder(TextView textView) {
-            super(textView);
-            mTextView = textView;
+        public TextView mTextViewTitle;
+        public TextView mTextViewTime;
+        public ViewHolder(View view) {
+            super(view);
+            mTextViewTitle = (TextView) view.findViewById(R.id.textView_lapTime_title);
+            mTextViewTime = (TextView) view.findViewById(R.id.textView_lapTime_time);
         }
 
     }
 
-    public LapTimesAdapter(ArrayList<String> lapTimes) {
+    public LapTimesAdapter(ArrayList<String[]> lapTimes) {
         mLapTimes = lapTimes;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.textview_laptimes, parent, false);
+                .inflate(R.layout.layout_laptimes, parent, false);
 
         // set the view's size, margins, paddings and layout parameters
-        ViewHolder viewHolder = new ViewHolder((TextView) v);
+        ViewHolder viewHolder = new ViewHolder(v);
         return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.mTextView.setText(mLapTimes.get(position));
+        holder.mTextViewTitle.setText(mLapTimes.get(position)[0]);
+        holder.mTextViewTime.setText(mLapTimes.get(position)[1]);
     }
 
     @Override
