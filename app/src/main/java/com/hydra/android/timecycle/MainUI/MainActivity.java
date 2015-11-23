@@ -3,6 +3,8 @@ package com.hydra.android.timecycle.mainui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity
     private long exerciseTime;
     private long restTime;
     private long countDownTime;
+    private String timerPlanCounterString;
 
     // Timer Handler & messages
     private TimerHander handler;
@@ -346,11 +349,18 @@ public class MainActivity extends AppCompatActivity
             if (!mActivity.isTimerFinished(hourTimer, minTimer, secTimer, milliTimer)) {
                 mActivity.displayTime(TimeFormatter.formatTimeToString(
                         hourTimer, minTimer, secTimer, milliTimer));
-                mActivity.displaySecondaryTime(
-                        String.format("%3d%s", (int)(mActivity.timer.getProgress() * 100), "%"));
+                if (mActivity.timerPlan != null && mActivity.timerType == MyConstants.EXERCISE_TIME)
+                    mActivity.displaySecondaryTime(mActivity.timerPlanCounterString + String.format(
+                            "%3d%s", (int) (mActivity.timer.getProgress() * 100), "%"));
+                else if (mActivity.timerPlan != null && mActivity.timerType == MyConstants.REST_TIME) {
+                    mActivity.displaySecondaryTime(mActivity.timerPlanCounterString + String.format(
+                            "%3d%s", (int) (mActivity.timer.getProgress() * 100), "%"));
+                } else {
+                    mActivity.displaySecondaryTime(String.format("%3d%s",
+                            (int) (mActivity.timer.getProgress() * 100), "%"));
+                }
                 sendEmptyMessageDelayed(MSG_UPDATE_TIMER,
                         UI_REFRESH_RATE);
-                Log.i("Progress", mActivity.timer.getProgress() + "");
             } else {
                 sendEmptyMessage(MSG_STOP_TIMER);
 
@@ -360,6 +370,8 @@ public class MainActivity extends AppCompatActivity
                             .getString(R.string.textView_default_time));
                     mActivity.timerType = 0;
                     mActivity.timerPlan = null;
+                    mActivity.getIntent().removeExtra(MyConstants.EXTRA_TIMERPLAN);
+                    mActivity.unlockOrientationChange();
                 }
 
                 if (mActivity.timerPlan != null &&
@@ -462,23 +474,7 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
 
-        // Catch the TimerPlan which is sent as Parcelable via intent
-        Intent intent = getIntent();
-        if (intent.hasExtra(MyConstants.EXTRA_TIMERPLAN)) {
-            Log.i("TimerPlan", "Successfully passed");
-            timerPlan = intent.getParcelableExtra(MyConstants.EXTRA_TIMERPLAN);
-            exerciseTime = timerPlan.getExerciseTime();
-            restTime = timerPlan.getRestTime();
-            countDownTime = timerPlan.getCountDown();
-            repetitions = timerPlan.getRepetitions();
-            timerType = MyConstants.COUNTDOWN_TIME;
-            Log.i("TimerPlan", "ExerciseTime: " + exerciseTime);
-            Log.i("TimerPlan", "RestTime: " + restTime);
-            Log.i("TimerPlan", "CountDown: " + countDownTime);
-            Log.i("TimerPlan", "Repetitions: " + repetitions);
-            Log.i("TimerPlan", "Intensity: " + timerPlan.getIntensity());
-            runTimerPlan(timerPlan, timerType);
-        }
+        getTimerPlan();
 
         // Sets up recycler view for lap history
         if (mLapTimes == null) {
@@ -541,6 +537,26 @@ public class MainActivity extends AppCompatActivity
         editor.putLong(SAVED_TIMER_ELAPSED_TIME, pausedTime);
         editor.putFloat(SAVED_TIMER_PROGRESS, timer.getProgress());
         editor.commit();
+    }
+
+    // Catch the TimerPlan which is sent as Parcelable via intent
+    private void getTimerPlan() {
+        Intent intent = getIntent();
+        if (intent.hasExtra(MyConstants.EXTRA_TIMERPLAN)) {
+            Log.i("TimerPlan", "Successfully passed");
+            timerPlan = intent.getParcelableExtra(MyConstants.EXTRA_TIMERPLAN);
+            exerciseTime = timerPlan.getExerciseTime();
+            restTime = timerPlan.getRestTime();
+            countDownTime = timerPlan.getCountDown();
+            repetitions = timerPlan.getRepetitions();
+            timerType = MyConstants.COUNTDOWN_TIME;
+            Log.i("TimerPlan", "ExerciseTime: " + exerciseTime);
+            Log.i("TimerPlan", "RestTime: " + restTime);
+            Log.i("TimerPlan", "CountDown: " + countDownTime);
+            Log.i("TimerPlan", "Repetitions: " + repetitions);
+            Log.i("TimerPlan", "Intensity: " + timerPlan.getIntensity());
+            runTimerPlan(timerPlan, timerType);
+        }
     }
 
     // TODO: Reconsider the layout for better performance (redundant removing and adding view here)
@@ -829,6 +845,7 @@ public class MainActivity extends AppCompatActivity
     private void runTimerPlan(TimerPlan timerPlan, int type) {
         if (timerPlan != null) {
             if (type == MyConstants.COUNTDOWN_TIME) {
+                lockOrientationChange();
                 setContentView(initCountdownLayout(inflater));
                 time = countDownTime;
                 setTimerTime(time);
@@ -837,14 +854,14 @@ public class MainActivity extends AppCompatActivity
                 time = exerciseTime;
                 setTimerTime(time);
                 // TODO: Make resources for translation compatibility
-                textView_secondaryTimeDisplay.setText("Exercise (" + numberOfCycles
-                        + "/" + repetitions + ")");
+                timerPlanCounterString = "Exercise (" + numberOfCycles
+                        + "/" + repetitions + ") - ";
                 backgroundColor = Color.argb(255, 255, 64, 129);
             } else if (type == MyConstants.REST_TIME) {
                 time = restTime;
                 setTimerTime(time);
-                textView_secondaryTimeDisplay.setText("Rest (" + numberOfCycles
-                        + "/" + repetitions + ")");
+                timerPlanCounterString = "Rest (" + numberOfCycles
+                        + "/" + repetitions + ") - ";
                 numberOfCycles++;
                 backgroundColor = Color.argb(255, 0, 150, 136);
             }
@@ -852,6 +869,19 @@ public class MainActivity extends AppCompatActivity
         } else {
             Log.i("TimerPlan", "TimerPlan is null");
         }
+    }
+
+    private void lockOrientationChange() {
+        int currentOrientation = getResources().getConfiguration().orientation;
+        if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        } else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
+        }
+    }
+
+    private void unlockOrientationChange() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     // Display the main time

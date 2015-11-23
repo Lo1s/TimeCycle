@@ -49,6 +49,9 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
     private Button button_startTimerPlan;
     private Button button_saveTimerPlan;
     private Button button_resetTimerPlan;
+    private String exerciseTimeString;
+    private String restTimeString;
+    private String countDownString;
 
     private OnSummaryFragmentInteractionListener mListener;
 
@@ -57,10 +60,10 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
      * this fragment using the provided parameters.
      *
      * @param exerciseTime Parameter 1.
-     * @param restTime Parameter 2.
-     * @param repetitions Parameter 3.
-     * @param countDown Parameter 4.
-     * @param intensity Parameter 5.
+     * @param restTime     Parameter 2.
+     * @param repetitions  Parameter 3.
+     * @param countDown    Parameter 4.
+     * @param intensity    Parameter 5.
      * @return A new instance of fragment TimerSummaryFragment.
      */
     public static TimerSummaryFragment newInstance(long exerciseTime, long restTime,
@@ -84,8 +87,8 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //setRetainInstance(true);
     }
-
 
 
     @Override
@@ -94,7 +97,6 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         if (getArguments() != null) {
             getTimers(getArguments());
         }
-
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_timer_summary, container, false);
         RatingBar ratingBarIntensity = (RatingBar) v.findViewById(R.id.ratingBar);
@@ -103,10 +105,18 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         textView_repetitionTime = (TextView) v.findViewById(R.id.textView_repetitions_value);
         textView_countDown = (TextView) v.findViewById(R.id.textView_countdown_value);
         getIntensity(ratingBarIntensity);
-        setSummary(getArguments());
+        if (getArguments() != null)
+            setSummary(getArguments());
         initButtons(v);
+
+        textView_exerciseTime = (TextView) v.findViewById(R.id.textView_exerciseTime_value);
+        textView_restTime = (TextView) v.findViewById(R.id.textView_restTime_value);
+        textView_repetitionTime = (TextView) v.findViewById(R.id.textView_repetitions_value);
+        textView_countDown = (TextView) v.findViewById(R.id.textView_countdown_value);
+
         return v;
     }
+
 
     private void initButtons(View v) {
         button_startTimerPlan = (Button) v.findViewById(R.id.button_start_timerPlan);
@@ -166,7 +176,7 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         SharedPreferences sharedPreferences
                 = getActivity().getPreferences(Context.MODE_PRIVATE);
         id = sharedPreferences.getInt(getResources().getString(R.string.sharedPreferences_id), 0);
-        Log.i("SharedPreferences", "Restored id: " + id);
+        //Log.i("SharedPreferences", "Restored id: " + id);
     }
 
     @Override
@@ -178,7 +188,7 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(getResources().getString(R.string.sharedPreferences_id), id);
         editor.commit();
-        Log.i("SharedPreferences", "Saved id: " + id);
+        //Log.i("SharedPreferences", "Saved id: " + id);
     }
 
 
@@ -219,13 +229,13 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         restHmsTime = TimeFormatter.millisToHms(this.restTime);
         countDownHmsTime = TimeFormatter.millisToHms(this.countDown);
 
-        String exerciseTimeString =
+        exerciseTimeString =
                 TimeFormatter.formatTimeToString(exerciseHmsTime[0], exerciseHmsTime[1],
                         exerciseHmsTime[2], 0);
-        String restTimeString =
+        restTimeString =
                 TimeFormatter.formatTimeToString(restHmsTime[0], restHmsTime[1],
                         restHmsTime[2], 0);
-        String countDownString =
+        countDownString =
                 TimeFormatter.formatTimeToString(countDownHmsTime[1],
                         countDownHmsTime[2]);
 
@@ -237,6 +247,7 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         textView_countDown.invalidate();
         textView_repetitionTime.setText(repetitions + "x");
         textView_repetitionTime.invalidate();
+
 
         saveTimers(summaryBundle);
     }

@@ -86,7 +86,7 @@ public class TimerExerciseFragment extends android.support.v4.app.Fragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        //setRetainInstance(true);
     }
 
     @Override

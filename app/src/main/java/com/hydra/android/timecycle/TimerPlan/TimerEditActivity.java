@@ -8,11 +8,10 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.util.Log;
 
-import com.hydra.android.timecycle.utils.MyConstants;
 import com.hydra.android.timecycle.R;
+import com.hydra.android.timecycle.utils.MyConstants;
 
 public class TimerEditActivity extends AppCompatActivity implements
         TimerSummaryFragment.OnSummaryFragmentInteractionListener,
@@ -67,6 +66,7 @@ public class TimerEditActivity extends AppCompatActivity implements
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.viewPager_container);
+        //mViewPager.setOffscreenPageLimit();
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
@@ -75,29 +75,16 @@ public class TimerEditActivity extends AppCompatActivity implements
 
     }
 
-
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_timer_edit, menu);
-        return true;
+    protected void onResume() {
+        super.onResume();
+        summaryFragment = TimerSummaryFragment.newInstance(exerciseTime, restTime,
+                repetitions, countDownTime, intensity);
+        exerciseFragment = TimerExerciseFragment.newInstance(exerciseTime);
+        restFragment = TimerRestFragment.newInstance(restTime);
+        repetitionsFragment = TimerRepetitionsFragment.newInstance(repetitions);
+        countDownFragment = TimerCountDownFragment.newInstance(countDownTime);
     }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -157,38 +144,59 @@ public class TimerEditActivity extends AppCompatActivity implements
         }
     }
 
+    // TODO: Check for leaks
+    private void restoreSummaryFragment() {
+        summaryFragment = TimerSummaryFragment.newInstance(exerciseTime, restTime,
+                repetitions, countDownTime, intensity);
+    }
+
     @Override
     public void onSummaryFragmentInteraction(float intensity) {
+        Log.i("onSummaryInteraction", "called");
         this.intensity = intensity;
         summaryBundle.putFloat(MyConstants.ARG_INTENSITY, intensity);
+        if (summaryFragment == null)
+            restoreSummaryFragment();
         summaryFragment.setSummary(summaryBundle);
     }
 
     @Override
     public void onExerciseFragmentInteraction(long exerciseTime) {
+        Log.i("onExerciseInteraction", "called");
         this.exerciseTime = exerciseTime;
         summaryBundle.putLong(MyConstants.ARG_EXERCISE_TIME, exerciseTime);
+        if (summaryFragment == null)
+            restoreSummaryFragment();
         summaryFragment.setSummary(summaryBundle);
     }
 
     @Override
     public void onRestFragmentInteraction(long restTime) {
+        Log.i("onRestInteraction", "called");
         this.restTime = restTime;
         summaryBundle.putLong(MyConstants.ARG_REST_TIME, restTime);
+        if (summaryFragment == null)
+            restoreSummaryFragment();
         summaryFragment.setSummary(summaryBundle);
     }
 
     @Override
     public void onRepetitionsFragmentInteraction(int repetitions) {
+        Log.i("onRepsInteraction", "called");
         this.repetitions = repetitions;
         summaryBundle.putInt(MyConstants.ARG_REPETITIONS, repetitions);
+        if (summaryFragment == null)
+            restoreSummaryFragment();
         summaryFragment.setSummary(summaryBundle);
     }
 
     @Override
     public void onCountDownFragmentInteraction(long countDownTime) {
+        Log.i("onCountDownInteraction", "called");
         this.countDownTime = countDownTime;
         summaryBundle.putLong(MyConstants.ARG_COUNTDOWN, countDownTime);
+        if (summaryFragment == null)
+            restoreSummaryFragment();
         summaryFragment.setSummary(summaryBundle);
     }
 }
