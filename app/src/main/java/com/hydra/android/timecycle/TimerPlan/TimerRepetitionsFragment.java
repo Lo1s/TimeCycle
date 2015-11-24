@@ -45,6 +45,7 @@ public class TimerRepetitionsFragment extends android.support.v4.app.Fragment
     }
 
     private void setRepetitions() {
+        getArguments().putInt(MyConstants.ARG_REPETITIONS, repetitions);
         textView_repetitions.setText(this.repetitions + "x");
         textView_repetitions.invalidate();
         if (mListener != null) {

@@ -88,4 +88,7 @@ public class CustomBackground extends View {
         animator.cancel();
     }
 
+    public float getAnimationProgress() {
+        return animator.getAnimatedFraction();
+    }
 }

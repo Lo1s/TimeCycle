@@ -52,6 +52,7 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
     private String exerciseTimeString;
     private String restTimeString;
     private String countDownString;
+    private boolean isVisible = false;
 
     private OnSummaryFragmentInteractionListener mListener;
 
@@ -105,15 +106,14 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         textView_repetitionTime = (TextView) v.findViewById(R.id.textView_repetitions_value);
         textView_countDown = (TextView) v.findViewById(R.id.textView_countdown_value);
         getIntensity(ratingBarIntensity);
-        if (getArguments() != null)
-            setSummary(getArguments());
+        setSummary(getArguments());
         initButtons(v);
 
         textView_exerciseTime = (TextView) v.findViewById(R.id.textView_exerciseTime_value);
         textView_restTime = (TextView) v.findViewById(R.id.textView_restTime_value);
         textView_repetitionTime = (TextView) v.findViewById(R.id.textView_repetitions_value);
         textView_countDown = (TextView) v.findViewById(R.id.textView_countdown_value);
-
+        Log.i("onCreateView", "called");
         return v;
     }
 
@@ -176,7 +176,7 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         SharedPreferences sharedPreferences
                 = getActivity().getPreferences(Context.MODE_PRIVATE);
         id = sharedPreferences.getInt(getResources().getString(R.string.sharedPreferences_id), 0);
-        //Log.i("SharedPreferences", "Restored id: " + id);
+        Log.i("onResume", "called");
     }
 
     @Override
@@ -188,7 +188,7 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(getResources().getString(R.string.sharedPreferences_id), id);
         editor.commit();
-        //Log.i("SharedPreferences", "Saved id: " + id);
+        Log.i("onPause", "called");
     }
 
 
@@ -201,12 +201,14 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement OnExerciseFragmentInteractionListener");
         }
+        Log.i("onAttach", "called");
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        Log.i("onDetach", "called");
     }
 
     // TODO: Change it to not create it everytime user slides to this fragment
@@ -238,7 +240,11 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         countDownString =
                 TimeFormatter.formatTimeToString(countDownHmsTime[1],
                         countDownHmsTime[2]);
+        displayTimers();
+        saveTimers(summaryBundle);
+    }
 
+    private void displayTimers() {
         textView_exerciseTime.setText(exerciseTimeString);
         textView_exerciseTime.invalidate();
         textView_restTime.setText(restTimeString);
@@ -247,9 +253,6 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         textView_countDown.invalidate();
         textView_repetitionTime.setText(repetitions + "x");
         textView_repetitionTime.invalidate();
-
-
-        saveTimers(summaryBundle);
     }
 
     private void runTimerPlan() {
@@ -272,7 +275,6 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
                     .setIntensity(intensity)
                     .build();
             // TODO: Reset the times in order to prevent multiple entries when double clicked etc.
-
         }
 
     }

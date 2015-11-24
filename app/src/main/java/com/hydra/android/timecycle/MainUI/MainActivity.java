@@ -389,10 +389,10 @@ public class MainActivity extends AppCompatActivity
                 // Convert time back to milliseconds
                 mActivity.background.startAnimation(mActivity.time,
                         mActivity.backgroundColor);
+            } else {
+                mActivity.background.resumeAnimation(mActivity.timer.getProgress());
             }
-
             mActivity.timer.start();
-            mActivity.background.resumeAnimation(MyConstants.NO_PROGRESS);
         }
 
         // TODO: Refactor later
@@ -624,14 +624,7 @@ public class MainActivity extends AppCompatActivity
         appBarLayout.removeAllViews();
         appBarLayout.addView(toolbar);
         setSupportActionBar(toolbar);
-        // Floating Button
-        FloatingActionButton fab = (FloatingActionButton) mainView.findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), TimerEditActivity.class));
-            }
-        });
+
 
         frameLayout.removeAllViews();
         frameLayout.addView(background);
@@ -640,7 +633,6 @@ public class MainActivity extends AppCompatActivity
         coordinatorLayout.removeAllViews();
         coordinatorLayout.addView(appBarLayout);
         coordinatorLayout.addView(frameLayout);
-        coordinatorLayout.addView(fab);
         return coordinatorLayout;
     }
 

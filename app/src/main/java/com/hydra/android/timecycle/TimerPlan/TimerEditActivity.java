@@ -8,7 +8,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.view.ViewGroup;
 
 import com.hydra.android.timecycle.R;
 import com.hydra.android.timecycle.utils.MyConstants;
@@ -33,6 +33,8 @@ public class TimerEditActivity extends AppCompatActivity implements
     private TimerRestFragment restFragment;
     private TimerRepetitionsFragment repetitionsFragment;
     private TimerCountDownFragment countDownFragment;
+
+    private PageChangeListener listener;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -66,8 +68,9 @@ public class TimerEditActivity extends AppCompatActivity implements
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.viewPager_container);
-        //mViewPager.setOffscreenPageLimit();
         mViewPager.setAdapter(mSectionsPagerAdapter);
+        listener = new PageChangeListener();
+        mViewPager.addOnPageChangeListener(listener);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
@@ -75,15 +78,31 @@ public class TimerEditActivity extends AppCompatActivity implements
 
     }
 
+    private class PageChangeListener extends ViewPager.SimpleOnPageChangeListener {
+
+        @Override
+        public void onPageSelected(int position) {
+            super.onPageSelected(position);
+            if (position == 0) {
+                summaryFragment.setSummary(summaryBundle);
+            }
+        }
+
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-        summaryFragment = TimerSummaryFragment.newInstance(exerciseTime, restTime,
-                repetitions, countDownTime, intensity);
-        exerciseFragment = TimerExerciseFragment.newInstance(exerciseTime);
-        restFragment = TimerRestFragment.newInstance(restTime);
-        repetitionsFragment = TimerRepetitionsFragment.newInstance(repetitions);
-        countDownFragment = TimerCountDownFragment.newInstance(countDownTime);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        summaryFragment = null;
+        exerciseFragment = null;
+        restFragment = null;
+        repetitionsFragment = null;
+        countDownFragment = null;
     }
 
     /**
@@ -117,6 +136,32 @@ public class TimerEditActivity extends AppCompatActivity implements
                     countDownFragment = TimerCountDownFragment.newInstance(countDownTime);
                     return countDownFragment;
             }
+
+            return null;
+        }
+
+        // Use instantiateItem after orientation change to prevent NPE on fragments
+        // (getItem is not called)
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            switch (position) {
+                case 0:
+                    summaryFragment = (TimerSummaryFragment) super.instantiateItem(container, position);
+                    return summaryFragment;
+                case 1:
+                    exerciseFragment = (TimerExerciseFragment) super.instantiateItem(container, position);
+                    return exerciseFragment;
+                case 2:
+                    restFragment = (TimerRestFragment) super.instantiateItem(container, position);
+                    return restFragment;
+                case 3:
+                    repetitionsFragment = (TimerRepetitionsFragment) super.instantiateItem(container, position);
+                    return repetitionsFragment;
+                case 4:
+                    countDownFragment = (TimerCountDownFragment) super.instantiateItem(container, position);
+                    return countDownFragment;
+            }
+
             return null;
         }
 
@@ -144,59 +189,33 @@ public class TimerEditActivity extends AppCompatActivity implements
         }
     }
 
-    // TODO: Check for leaks
-    private void restoreSummaryFragment() {
-        summaryFragment = TimerSummaryFragment.newInstance(exerciseTime, restTime,
-                repetitions, countDownTime, intensity);
-    }
-
     @Override
     public void onSummaryFragmentInteraction(float intensity) {
-        Log.i("onSummaryInteraction", "called");
         this.intensity = intensity;
         summaryBundle.putFloat(MyConstants.ARG_INTENSITY, intensity);
-        if (summaryFragment == null)
-            restoreSummaryFragment();
-        summaryFragment.setSummary(summaryBundle);
     }
 
     @Override
     public void onExerciseFragmentInteraction(long exerciseTime) {
-        Log.i("onExerciseInteraction", "called");
         this.exerciseTime = exerciseTime;
         summaryBundle.putLong(MyConstants.ARG_EXERCISE_TIME, exerciseTime);
-        if (summaryFragment == null)
-            restoreSummaryFragment();
-        summaryFragment.setSummary(summaryBundle);
     }
 
     @Override
     public void onRestFragmentInteraction(long restTime) {
-        Log.i("onRestInteraction", "called");
         this.restTime = restTime;
         summaryBundle.putLong(MyConstants.ARG_REST_TIME, restTime);
-        if (summaryFragment == null)
-            restoreSummaryFragment();
-        summaryFragment.setSummary(summaryBundle);
     }
 
     @Override
     public void onRepetitionsFragmentInteraction(int repetitions) {
-        Log.i("onRepsInteraction", "called");
         this.repetitions = repetitions;
         summaryBundle.putInt(MyConstants.ARG_REPETITIONS, repetitions);
-        if (summaryFragment == null)
-            restoreSummaryFragment();
-        summaryFragment.setSummary(summaryBundle);
     }
 
     @Override
     public void onCountDownFragmentInteraction(long countDownTime) {
-        Log.i("onCountDownInteraction", "called");
         this.countDownTime = countDownTime;
         summaryBundle.putLong(MyConstants.ARG_COUNTDOWN, countDownTime);
-        if (summaryFragment == null)
-            restoreSummaryFragment();
-        summaryFragment.setSummary(summaryBundle);
     }
 }
