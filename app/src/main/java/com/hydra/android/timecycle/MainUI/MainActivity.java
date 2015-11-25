@@ -19,6 +19,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -157,6 +158,7 @@ public class MainActivity extends AppCompatActivity
 
                 switch (msg.what) {
                     case MainActivity.MSG_START_STOPWATCH:
+                        keepScreenOn(true, mActivity);
                         startStopWatch(mActivity);
                         sendEmptyMessage(MSG_UPDATE_STOPWATCH);
                         break;
@@ -169,6 +171,7 @@ public class MainActivity extends AppCompatActivity
                         removeMessages(MSG_UPDATE_STOPWATCH);
                         break;
                     case MSG_STOP_STOPWATCH:
+                        keepScreenOn(false, mActivity);
                         stopStopWatch(mActivity);
                         removeMessages(MSG_UPDATE_STOPWATCH);
                         break;
@@ -178,6 +181,7 @@ public class MainActivity extends AppCompatActivity
                                 UI_REFRESH_RATE);
                         break;
                     case MSG_START_TIMER:
+                        keepScreenOn(true, mActivity);
                         startTimer(mActivity);
                         sendEmptyMessage(MSG_UPDATE_TIMER);
                         break;
@@ -195,6 +199,7 @@ public class MainActivity extends AppCompatActivity
                         removeMessages(MSG_UPDATE_TIMER);
                         break;
                     case MSG_STOP_TIMER:
+                        keepScreenOn(false, mActivity);
                         stopTimer(mActivity);
                         removeMessages(MSG_UPDATE_TIMER);
                         break;
@@ -202,10 +207,12 @@ public class MainActivity extends AppCompatActivity
                         updateTimer(mActivity);
                         break;
                     case MSG_START_COUNTDOWN:
+                        keepScreenOn(true, mActivity);
                         startCountDown(mActivity);
                         sendEmptyMessage(MSG_UPDATE_COUNTDOWN);
                         break;
                     case MSG_STOP_COUNTDOWN:
+                        keepScreenOn(false, mActivity);
                         stopCountDown(mActivity);
                         removeMessages(MSG_UPDATE_COUNTDOWN);
                         break;
@@ -239,6 +246,14 @@ public class MainActivity extends AppCompatActivity
             secSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeSecs();
             minSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeMinutes();
             hourSplitStopWatch = mActivity.splitStopWatch.getElapsedTimeHours();
+        }
+
+        private void keepScreenOn(boolean keepOn, MainActivity mActivity) {
+            if (keepOn) {
+                mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            } else {
+                mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
         }
 
         private void startStopWatch(MainActivity mActivity) {
