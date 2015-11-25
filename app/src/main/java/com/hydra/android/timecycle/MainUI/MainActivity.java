@@ -448,6 +448,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+
         if (handler == null)
             handler = new TimerHander(this);
         else

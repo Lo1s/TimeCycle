@@ -14,8 +14,8 @@ import android.widget.Button;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.hydra.android.timecycle.mainui.MainActivity;
 import com.hydra.android.timecycle.R;
+import com.hydra.android.timecycle.mainui.MainActivity;
 import com.hydra.android.timecycle.utils.MyConstants;
 import com.hydra.android.timecycle.utils.TimeFormatter;
 
@@ -52,7 +52,6 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
     private String exerciseTimeString;
     private String restTimeString;
     private String countDownString;
-    private boolean isVisible = false;
 
     private OnSummaryFragmentInteractionListener mListener;
 
@@ -113,7 +112,6 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         textView_restTime = (TextView) v.findViewById(R.id.textView_restTime_value);
         textView_repetitionTime = (TextView) v.findViewById(R.id.textView_repetitions_value);
         textView_countDown = (TextView) v.findViewById(R.id.textView_countdown_value);
-        Log.i("onCreateView", "called");
         return v;
     }
 
@@ -176,7 +174,6 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         SharedPreferences sharedPreferences
                 = getActivity().getPreferences(Context.MODE_PRIVATE);
         id = sharedPreferences.getInt(getResources().getString(R.string.sharedPreferences_id), 0);
-        Log.i("onResume", "called");
     }
 
     @Override
@@ -188,7 +185,6 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(getResources().getString(R.string.sharedPreferences_id), id);
         editor.commit();
-        Log.i("onPause", "called");
     }
 
 
@@ -201,14 +197,12 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement OnExerciseFragmentInteractionListener");
         }
-        Log.i("onAttach", "called");
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        Log.i("onDetach", "called");
     }
 
     // TODO: Change it to not create it everytime user slides to this fragment
@@ -259,6 +253,8 @@ public class TimerSummaryFragment extends android.support.v4.app.Fragment {
         if (timerPlan != null) {
             Intent timerPlanIntent = new Intent(getContext(), MainActivity.class);
             timerPlanIntent.putExtra(MyConstants.EXTRA_TIMERPLAN, timerPlan);
+            timerPlanIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(timerPlanIntent);
         } else {
             Log.e("TimerPlan", "TimerPlan is null !");

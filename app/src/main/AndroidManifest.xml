@@ -22,6 +22,9 @@
             android:name=".timerplan.TimerEditActivity"
             android:label="@string/title_activity_timer_edit"
             android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".mainui.MainActivity" />
         </activity>
     </application>
 
